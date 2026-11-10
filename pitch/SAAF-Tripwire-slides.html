@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAAF Tripwire</title>
+<style>
+:root{
+  --bg:#0b0d12; --panel:#121620; --panel2:#171c28; --line:#252c3b; --text:#e8ecf3; --muted:#8b95a8;
+  --accent:#ff6b4a; --accent2:#ffb347; --ok:#3ecf8e; --info:#6aa8ff; --ai:#c58cff; --web:#6aa8ff; --client:#4fd1c5; --data:#ffd166; --logic:#ff8fab; --supply:#ff6b4a;
+  --shadow:0 20px 60px rgba(0,0,0,.45);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f6f7fb; --panel:#ffffff; --panel2:#f0f2f8; --line:#dde2ec; --text:#141822; --muted:#5b6578;
+    --shadow:0 20px 60px rgba(20,30,60,.12);
+  }
+}
+:root[data-theme="light"]{ --bg:#f6f7fb; --panel:#ffffff; --panel2:#f0f2f8; --line:#dde2ec; --text:#141822; --muted:#5b6578; --shadow:0 20px 60px rgba(20,30,60,.12); }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow:hidden}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.deck{position:relative;height:100%;width:100%}
+.slide{position:absolute;inset:0;padding:clamp(18px,4vw,56px);display:flex;flex-direction:column;gap:clamp(12px,2vh,22px);opacity:0;transform:translateX(40px);transition:opacity .5s ease,transform .5s ease;pointer-events:none;overflow:auto}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.left{transform:translateX(-40px)}
+.kicker{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:13px}
+h1{margin:0;font-size:clamp(30px,4.6vw,58px);line-height:1.04;letter-spacing:-.02em}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{margin:0;font-size:clamp(24px,3.2vw,40px);letter-spacing:-.015em}
+.sub{color:var(--muted);font-size:clamp(15px,1.5vw,19px);max-width:68ch;margin:0}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+.slide.active .card{opacity:1;transform:none}
+.slide.active .card:nth-child(2){transition-delay:.08s}.slide.active .card:nth-child(3){transition-delay:.16s}.slide.active .card:nth-child(4){transition-delay:.24s}
+.stat .n{font-size:clamp(30px,3.6vw,46px);font-weight:800;letter-spacing:-.02em}
+.stat .l{color:var(--muted);font-size:14px}
+.face h3{margin:6px 0 6px;font-size:19px}
+.face p{margin:0;color:var(--muted);font-size:14.5px}
+.face .tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+.face .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:20px;background:var(--panel2);border:1px solid var(--line)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{font-size:12.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--text)}
+.chip b{font-weight:700}
+.story{border-left:3px solid var(--accent);padding:4px 0 4px 14px;color:var(--text);font-size:clamp(15px,1.45vw,18px);max-width:80ch}
+.story span{color:var(--muted)}
+/* diagram */
+.diagram-wrap{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:10px;position:relative;flex:1;min-height:340px;display:flex;flex-direction:column}
+svg{width:100%;height:100%;flex:1;min-height:300px}
+.node rect{fill:var(--panel2);stroke:var(--line);stroke-width:1.5;transition:stroke .3s,fill .3s}
+.node text{fill:var(--text);font-size:15px;font-weight:600}
+.node .small{fill:var(--muted);font-size:11.5px;font-weight:500}
+.node{cursor:pointer}
+.node.lit rect{stroke:var(--accent);stroke-width:2.5}
+.node:hover rect,.node:focus rect{stroke:var(--accent2)}
+.edge{fill:none;stroke:var(--line);stroke-width:2}
+.edge.lit{stroke:var(--accent);stroke-dasharray:6 6;animation:dash 1s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-24}}
+.pkt{fill:var(--accent2);filter:drop-shadow(0 0 6px var(--accent2))}
+.rule{transition:opacity .3s}
+.rule rect{rx:6;stroke-width:1.2}
+.rule text{font-size:10.5px;font-weight:700;fill:#0b0d12}
+.verdict{font-size:13px;font-weight:700}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 6px 2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 14px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.steptext{color:var(--muted);font-size:14.5px;flex:1;min-width:240px}
+.steptext b{color:var(--text)}
+.detail{position:absolute;left:16px;top:16px;max-width:320px;background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:12px 14px;font-size:13.5px;box-shadow:var(--shadow);display:none}
+.detail.show{display:block}
+.detail h4{margin:0 0 4px;font-size:14.5px}
+.detail p{margin:0;color:var(--muted)}
+pre.adopt{margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;overflow:auto}
+.nav{position:fixed;bottom:14px;right:16px;display:flex;gap:8px;align-items:center;z-index:5}
+.dots{display:flex;gap:6px;margin-right:6px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--line);border:0;padding:0}
+.dot.on{background:var(--accent)}
+.theme{position:fixed;top:14px;right:16px;z-index:5;font-size:13px;padding:6px 10px}
+.foot{color:var(--muted);font-size:12.5px;margin-top:auto}
+@media (max-width:860px){ .g3,.g4{grid-template-columns:1fr 1fr} .detail{position:static;max-width:none;margin:8px 6px} }
+@media (max-width:520px){ .g3,.g4{grid-template-columns:1fr} html,body{overflow:auto} .slide{position:relative;display:none} .slide.active{display:flex} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+</style>
+</head>
+<body>
+<button class="theme" id="themeBtn" aria-label="Toggle light or dark theme">◐ Theme</button>
+<main class="deck" id="deck">
+
+<!-- SLIDE 1 -->
+<section class="slide active" id="s1" aria-label="Slide 1: What SAAF Tripwire is">
+  <div class="kicker">SAAF Hackathon · One guard that stops a bad actor</div>
+  <h1>SAAF <em>Tripwire</em></h1>
+  <p class="sub">We built one guard from the real weaknesses we found in the SAAF agents. It trips the build the moment a known weakness shows up in any SAAF repository.</p>
+
+  <p class="story"><b>The bad actor.</b> A supplier sends an invoice for an order that doesn't exist. The payment agent's intake check fails… and the invoice still gets paid. <span>(We confirmed it in threewaysecurity, reproduced it and fixed it on a copy.)</span></p>
+
+  <div class="grid g4">
+    <div class="card stat"><div class="n" data-count="50">0</div><div class="l">SAAF repos audited</div></div>
+    <div class="card stat"><div class="n" data-count="44">0</div><div class="l">confirmed weaknesses, each shown by a test before and after the fix</div></div>
+    <div class="card stat"><div class="n" data-count="16">0</div><div class="l">Tripwire rules, each from a weakness that came back across repos</div></div>
+    <div class="card stat"><div class="n"><span data-count="27">0</span>/<span data-count="29">0</span></div><div class="l">of the confirmed weaknesses its rules target. Tripwire catches these automatically.</div></div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card face"><div class="row"><div class="ic">⛔</div><span class="tag">CI check</span></div><h3>Fails the build</h3><p>Tripwire runs on every push and pull request. Findings show inline on the pull request. A serious finding blocks the merge.</p></div>
+    <div class="card face"><div class="row"><div class="ic">🔁</div><span class="tag">Workflow</span></div><h3>3 lines to adopt</h3><p>Any SAAF repo turns on one shared workflow. It scans the <b>full git history</b> for leaked keys on every push, with locked-down permissions.</p></div>
+    <div class="card face"><div class="row"><div class="ic">🧠</div><span class="tag">Skill</span></div><h3>Documents are data, not orders</h3><p>A Claude skill puts the audit method on one page. Its guard wraps auditee documents so planted instructions can't steer the agent.</p></div>
+  </div>
+
+  <div class="row">
+    <span class="chip"><b>AI</b> prompt injection · unchecked AI verdicts</span>
+    <span class="chip"><b>Web</b> open servers · any-site access · fetch-anything</span>
+    <span class="chip"><b>Output</b> unescaped reports · keys in the page</span>
+    <span class="chip"><b>Logic</b> checks that let failures through</span>
+    <span class="chip"><b>Supply chain</b> keys in history · unpinned add-ons</span>
+  </div>
+  <div class="foot">Deterministic and offline, with no AI calls · a few seconds per repo · 247 tests · passes its own scan · → next slide (arrow key)</div>
+</section>
+
+<!-- SLIDE 2 -->
+<section class="slide" id="s2" aria-label="Slide 2: How SAAF Tripwire works">
+  <div class="kicker">How it works</div>
+  <h2>Tripwire scans every push with 16 rules, then blocks, reports or guards</h2>
+
+  <div class="diagram-wrap">
+    <svg id="flow" viewBox="0 0 1000 430" role="img" aria-label="Workflow: a developer pushes code, Tripwire scans it with 16 rules, then the CI check, the workflow and the skill act on the result">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker>
+      </defs>
+      <!-- edges -->
+      <path id="e1" class="edge" d="M175,215 C215,215 225,215 270,215" marker-end="url(#arr)"/>
+      <path id="e2" class="edge" d="M560,215 C610,215 610,80 660,80" marker-end="url(#arr)"/>
+      <path id="e3" class="edge" d="M560,215 C610,215 610,215 660,215" marker-end="url(#arr)"/>
+      <path id="e4" class="edge" d="M560,215 C610,215 610,350 660,350" marker-end="url(#arr)"/>
+      <path id="e5" class="edge" d="M880,80 C920,80 920,80 950,80" marker-end="url(#arr)"/>
+
+      <!-- nodes -->
+      <g class="node" id="n-push" tabindex="0" data-title="1 · A developer pushes" data-text="Any push or pull request in a SAAF repo starts a scan. The scan covers what no longer shows in the files, such as a secret someone deleted that still sits in git history.">
+        <rect x="20" y="170" width="155" height="90" rx="14"/>
+        <text x="97" y="208" text-anchor="middle">git push</text>
+        <text class="small" x="97" y="230" text-anchor="middle">or pull request</text>
+      </g>
+
+      <g class="node" id="n-engine" tabindex="0" data-title="2 · Tripwire engine" data-text="The engine loads 16 rules and checks every tracked file plus the full history. It is deterministic and offline, makes no AI calls and gives the same answer every run. It masks keys after 4 characters.">
+        <rect x="270" y="40" width="290" height="350" rx="16"/>
+        <text x="415" y="72" text-anchor="middle">Tripwire engine</text>
+        <text class="small" x="415" y="92" text-anchor="middle">16 rules · 6 attack classes</text>
+        <g id="rules"></g>
+      </g>
+
+      <g class="node" id="n-ci" tabindex="0" data-title="3a · CI check" data-text="The check writes SARIF, the format GitHub code scanning reads, so findings appear inline on the pull request. Then it fails the build at the level you choose, for example --fail-on high. A baseline file lets a repo adopt it gradually.">
+        <rect x="660" y="40" width="220" height="80" rx="14"/>
+        <text x="770" y="75" text-anchor="middle">CI check</text>
+        <text class="small" x="770" y="96" text-anchor="middle">inline on the PR · fails the build</text>
+      </g>
+      <g class="node" id="n-wf" tabindex="0" data-title="3b · Reusable workflow" data-text="Any SAAF repo adds it in three lines. It checks out the full history, so it finds leaked keys even after someone deletes them. It runs with least privilege, pins every action to a commit and runs the guard isolated, so the repo can't swap it out.">
+        <rect x="660" y="175" width="220" height="80" rx="14"/>
+        <text x="770" y="210" text-anchor="middle">Reusable workflow</text>
+        <text class="small" x="770" y="231" text-anchor="middle">every push · full history</text>
+      </g>
+      <g class="node" id="n-skill" tabindex="0" data-title="3c · Claude skill" data-text="Agents and auditors get the audit method on one page. tripwire.fence wraps auditee documents as data inside a random tag, so planted instructions can't steer the agent. check_quotes rejects quotes that aren't in the source.">
+        <rect x="660" y="310" width="220" height="80" rx="14"/>
+        <text x="770" y="345" text-anchor="middle">Claude skill</text>
+        <text class="small" x="770" y="366" text-anchor="middle">documents are data, not orders</text>
+      </g>
+      <text id="verdict" class="verdict" x="770" y="145" text-anchor="middle" style="fill:var(--accent)"></text>
+
+      <circle id="pkt" class="pkt" r="7" cx="97" cy="215" opacity="0"/>
+    </svg>
+    <div class="detail" id="detail" role="status" aria-live="polite"><h4 id="dTitle"></h4><p id="dText"></p></div>
+    <div class="controls">
+      <button class="primary" id="playBtn">▶ Play</button>
+      <button id="stepBtn">Next step</button>
+      <button id="badBtn" aria-pressed="true">Scenario: bad push</button>
+      <div class="steptext" id="stepText">Press <b>Play</b> to follow one push through Tripwire, or click any box.</div>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card"><b>Adopt in 3 lines</b>
+<pre class="adopt mono">jobs:
+  tripwire:
+    uses: SAAF-Project/saaf-tripwire/.github/workflows/tripwire.yml@&lt;sha&gt;</pre></div>
+    <div class="card"><b>Proven on real SAAF code</b><p class="sub" style="font-size:14.5px;margin-top:6px">Every rule fires on the repo where we found the weakness and stays quiet on safe code. A red-team agent attacked each rule until its tricks stopped working.</p></div>
+    <div class="card"><b>Live demo</b><p class="sub" style="font-size:14.5px;margin-top:6px">We planted an "auditor note" in llm_owasp. <b>Before</b> the guard, the agent obeys it and a made-up quote passes. <b>After</b> the guard, the note stays data and Tripwire rejects the quote.</p></div>
+  </div>
+</section>
+</main>
+
+<nav class="nav" aria-label="Slide navigation">
+  <div class="dots"><button class="dot on" id="d1" aria-label="Slide 1"></button><button class="dot" id="d2" aria-label="Slide 2"></button></div>
+  <button id="prevBtn" aria-label="Previous slide">←</button>
+  <button id="nextBtn" aria-label="Next slide">→</button>
+</nav>
+
+<script>
+(function(){
+  // ---------- theme ----------
+  var root=document.documentElement, store={};
+  function sget(k){try{return localStorage.getItem(k)}catch(e){return store[k]||null}}
+  function sset(k,v){try{localStorage.setItem(k,v)}catch(e){store[k]=v}}
+  var saved=sget('tw-theme'); if(saved) root.setAttribute('data-theme',saved);
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var dark = root.getAttribute('data-theme') ? root.getAttribute('data-theme')==='dark' : !matchMedia('(prefers-color-scheme: light)').matches;
+    var next = dark?'light':'dark'; root.setAttribute('data-theme',next); sset('tw-theme',next);
+  });
+
+  // ---------- slides ----------
+  var slides=[document.getElementById('s1'),document.getElementById('s2')], cur=0;
+  var dots=[document.getElementById('d1'),document.getElementById('d2')];
+  function go(i){
+    if(i<0||i>=slides.length||i===cur) return;
+    slides[cur].classList.remove('active'); slides[cur].classList.toggle('left', i>cur);
+    cur=i; slides[cur].classList.remove('left'); slides[cur].classList.add('active');
+    dots.forEach(function(d,k){d.classList.toggle('on',k===cur)});
+    if(cur===0) countUp(); else { stop(); }
+  }
+  document.getElementById('nextBtn').onclick=function(){go(cur+1)};
+  document.getElementById('prevBtn').onclick=function(){go(cur-1)};
+  dots.forEach(function(d,k){d.onclick=function(){go(k)}});
+  document.addEventListener('keydown',function(e){
+    if(e.target.closest && e.target.closest('.node')) { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); showNode(e.target.closest('.node')); } return; }
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') { e.preventDefault(); go(cur+1); }
+    if(e.key==='ArrowLeft'||e.key==='PageUp') { e.preventDefault(); go(cur-1); }
+  });
+  var tx=null; document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',function(e){ if(tx===null) return; var dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>60) go(cur+(dx<0?1:-1)); tx=null; });
+
+  // ---------- count-up stats ----------
+  function countUp(){
+    document.querySelectorAll('[data-count]').forEach(function(el){
+      var target=+el.getAttribute('data-count'); if(isNaN(target)) return; var t0=null;
+      function tick(ts){ if(!t0) t0=ts; var p=Math.min(1,(ts-t0)/900); el.textContent=Math.round(target*(1-Math.pow(1-p,3))); if(p<1) requestAnimationFrame(tick); }
+      requestAnimationFrame(tick);
+    });
+  }
+  countUp();
+
+  // ---------- rules inside the engine ----------
+  var RULES=[
+    ['LLM1','ai','Prompt injection'],['LLM2','ai','Unchecked AI verdict'],
+    ['NET1','web','Open server, no login'],['NET2','web','Any site can call it'],['NET4','web','Risky route, no login'],['NET5','web','Fetches any URL'],
+    ['OUT1','client','Unescaped report'],['KEY1','client','Key in the page'],
+    ['FS1','data','Symlink / path tricks'],['OUT2','data','Spreadsheet formulas'],
+    ['GATE1','logic','Failure let through'],
+    ['SEC1','supply','Keys in history'],['CI1','supply','Unpinned add-on'],['CI2','supply','Workflow injection'],['CI3','supply','Guard can be swapped'],['DEP1','supply','Unpinned packages']
+  ];
+  var COLORS={ai:'var(--ai)',web:'var(--web)',client:'var(--client)',data:'var(--data)',logic:'var(--logic)',supply:'var(--supply)'};
+  var BAD={SEC1:1,NET1:1,LLM1:1,GATE1:1};
+  var g=document.getElementById('rules'), NS='http://www.w3.org/2000/svg', ruleEls={};
+  RULES.forEach(function(r,i){
+    var col=i%2, row=Math.floor(i/2), x=290+col*130, y=108+row*34;
+    var gg=document.createElementNS(NS,'g'); gg.setAttribute('class','rule'); gg.setAttribute('id','r-'+r[0]);
+    var rc=document.createElementNS(NS,'rect'); rc.setAttribute('x',x); rc.setAttribute('y',y); rc.setAttribute('width',122); rc.setAttribute('height',26); rc.style.fill=COLORS[r[1]]; rc.style.stroke=COLORS[r[1]]; rc.setAttribute('opacity','.28');
+    var t=document.createElementNS(NS,'text'); t.setAttribute('x',x+8); t.setAttribute('y',y+17); t.textContent='TW-'+r[0];
+    var title=document.createElementNS(NS,'title'); title.textContent='TW-'+r[0]+': '+r[2];
+    gg.appendChild(title); gg.appendChild(rc); gg.appendChild(t); g.appendChild(gg); ruleEls[r[0]]=rc;
+  });
+
+  // ---------- node details ----------
+  var detail=document.getElementById('detail'), dT=document.getElementById('dTitle'), dX=document.getElementById('dText');
+  function showNode(n){
+    document.querySelectorAll('.node').forEach(function(x){x.classList.remove('lit')}); n.classList.add('lit');
+    dT.textContent=n.getAttribute('data-title'); dX.textContent=n.getAttribute('data-text'); detail.classList.add('show');
+  }
+  document.querySelectorAll('.node').forEach(function(n){ if(n.dataset.wired) return; n.dataset.wired='1'; n.addEventListener('click',function(){showNode(n)}); });
+
+  // ---------- animated walkthrough ----------
+  var pkt=document.getElementById('pkt'), verdict=document.getElementById('verdict'), stepText=document.getElementById('stepText');
+  var bad=true, step=-1, timer=null, raf=null;
+  function along(pathId, ms, done){
+    var p=document.getElementById(pathId), L=p.getTotalLength(), t0=null; pkt.setAttribute('opacity','1');
+    function f(ts){ if(!t0) t0=ts; var k=Math.min(1,(ts-t0)/ms), pt=p.getPointAtLength(L*k); pkt.setAttribute('cx',pt.x); pkt.setAttribute('cy',pt.y); if(k<1) raf=requestAnimationFrame(f); else done&&done(); }
+    raf=requestAnimationFrame(f);
+  }
+  function lightEdges(ids){ document.querySelectorAll('.edge').forEach(function(e){ e.classList.toggle('lit', ids.indexOf(e.id)>=0) }); }
+  function resetRules(){ Object.keys(ruleEls).forEach(function(k){ ruleEls[k].setAttribute('opacity','.28') }); }
+  var STEPS=[
+    function(){ resetRules(); verdict.textContent=''; lightEdges(['e1']); showNode(document.getElementById('n-push'));
+      stepText.innerHTML = bad ? '<b>Push.</b> A change arrives with an old <b>.env</b> key still in history, a server open to the network, a document pasted straight into a prompt, and an intake check that only logs a failure.' : '<b>Push.</b> A clean change arrives. Keys come from settings, the server is local-only and the documents are fenced.';
+      along('e1',900); },
+    function(){ lightEdges([]); showNode(document.getElementById('n-engine')); stepText.innerHTML='<b>Scan.</b> All 16 rules run over every file and the full git history. It makes no AI calls and takes a few seconds.';
+      var keys=Object.keys(ruleEls), i=0; pkt.setAttribute('cx',415); pkt.setAttribute('cy',215);
+      (function sweep(){ if(i>=keys.length){ return; } var k=keys[i++]; ruleEls[k].setAttribute('opacity', bad&&BAD[k] ? '1' : '.55'); timer=setTimeout(sweep,90); })(); },
+    function(){ lightEdges(['e2','e3','e4']); showNode(document.getElementById('n-ci'));
+      stepText.innerHTML = bad ? '<b>Report.</b> 4 rules fire: <b>TW-SEC1</b> key in history, <b>TW-NET1</b> open server, <b>TW-LLM1</b> unfenced prompt, <b>TW-GATE1</b> failure let through. Each shows on the pull request with file, line and fix.' : '<b>Report.</b> Nothing fires. The pull request shows a clean check.';
+      along('e3',800); },
+    function(){ lightEdges(['e2','e5']); showNode(document.getElementById('n-ci'));
+      verdict.textContent = bad ? 'BUILD BLOCKED' : 'MERGE ✓'; verdict.style.fill = bad ? 'var(--accent)' : 'var(--ok)';
+      stepText.innerHTML = bad ? '<b>Block.</b> Tripwire stops the merge before the bad actor gets in. The team rotates the key and puts the fixes in. The agent skill fences documents in the meantime.' : '<b>Pass.</b> The change merges. Tripwire runs again on the next push.';
+      along('e2',700,function(){ along('e5',500); }); }
+  ];
+  function doStep(){ step=(step+1)%STEPS.length; STEPS[step](); }
+  function play(){ stop(); step=-1; doStep(); timer=setInterval(function(){ if(step>=STEPS.length-1){ stop(); return;} doStep(); }, 2600); document.getElementById('playBtn').textContent='■ Stop'; }
+  function stop(){ clearInterval(timer); clearTimeout(timer); cancelAnimationFrame(raf); document.getElementById('playBtn').textContent='▶ Play'; }
+  var playBtn=document.getElementById('playBtn');
+  playBtn.addEventListener('click',function(){ if(playBtn.textContent.indexOf('Stop')>=0) stop(); else play(); });
+  document.getElementById('stepBtn').addEventListener('click',function(){ stop(); doStep(); });
+  var badBtn=document.getElementById('badBtn');
+  badBtn.addEventListener('click',function(){ bad=!bad; badBtn.textContent='Scenario: '+(bad?'bad push':'clean push'); badBtn.setAttribute('aria-pressed',String(bad)); stop(); step=-1; resetRules(); verdict.textContent=''; lightEdges([]); stepText.innerHTML='Scenario switched. Press <b>Play</b>.'; });
+})();
+</script>
+</body>
+</html>
