@@ -1,0 +1,834 @@
+{
+ "records": [
+  {
+   "id": "G-P02",
+   "repo": "OWASP-top-10-LLM-assessment",
+   "tier": "executed",
+   "files": [
+    "agent-reviewer/app.py",
+    "agent-reviewer/review_agent.py"
+   ]
+  },
+  {
+   "id": "G-P10",
+   "repo": "SAAF-Project",
+   "tier": "executed",
+   "files": [
+    "tools/scripts/owasp-agent-reviewer/app.py",
+    "tools/scripts/owasp-agent-reviewer/review_agent.py"
+   ]
+  },
+  {
+   "id": "SA-01",
+   "repo": "OWASP-top-10-LLM-assessment",
+   "tier": "executed",
+   "files": [
+    "app.py",
+    "review_agent.py"
+   ]
+  },
+  {
+   "id": "SA-02",
+   "repo": "OWASP-top-10-LLM-assessment",
+   "tier": "executed",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "SA-05",
+   "repo": "SAAF-circuit-breaker",
+   "tier": "executed",
+   "files": [
+    "src/lib/sentinel.ts"
+   ]
+  },
+  {
+   "id": "G-P01",
+   "repo": "Finding-analysis",
+   "tier": "executed",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "G-P04",
+   "repo": "joiners-movers-leavers-agent",
+   "tier": "executed",
+   "files": [
+    "web/app.py"
+   ]
+  },
+  {
+   "id": "G-P06",
+   "repo": "Agent-Auditor",
+   "tier": "executed",
+   "files": [
+    "server/server.py"
+   ]
+  },
+  {
+   "id": "G-P07",
+   "repo": "FieldworkOrchestration",
+   "tier": "executed",
+   "files": [
+    "webapp/server.py"
+   ]
+  },
+  {
+   "id": "G-P09",
+   "repo": "Executive-Summary-Writer",
+   "tier": "executed",
+   "files": [
+    "frontend/agent-service/app.py"
+   ]
+  },
+  {
+   "id": "G-P12",
+   "repo": "three-way-match-audit",
+   "tier": "executed",
+   "files": [
+    "webapp/app/main.py"
+   ]
+  },
+  {
+   "id": "G-P14",
+   "repo": "saaf-portal",
+   "tier": "executed",
+   "files": [
+    "server/index.js"
+   ]
+  },
+  {
+   "id": "G-P15",
+   "repo": "OWASP-AI-Testing-Agent",
+   "tier": "executed",
+   "files": [
+    "owasp_ai_testing_agent/guide.py"
+   ]
+  },
+  {
+   "id": "G-P17",
+   "repo": "FieldworkOrchestration",
+   "tier": "executed",
+   "files": [
+    "webapp/server.py"
+   ]
+  },
+  {
+   "id": "G-P23",
+   "repo": "three-way-match-audit",
+   "tier": "executed",
+   "files": [
+    "webapp/app/main.py"
+   ]
+  },
+  {
+   "id": "SA-03",
+   "repo": "Finding-analysis",
+   "tier": "executed",
+   "files": [
+    "app.py",
+    "report/report_generator.py"
+   ]
+  },
+  {
+   "id": "SA-04",
+   "repo": "three-way-match-audit",
+   "tier": "executed",
+   "files": [
+    "webapp/app/services/matcher.py",
+    "webapp/app/services/parsers.py"
+   ]
+  },
+  {
+   "id": "SA-06",
+   "repo": "SAAF-circuit-breaker",
+   "tier": "executed",
+   "files": [
+    "src/lib/sentinel.ts"
+   ]
+  },
+  {
+   "id": "SA-08",
+   "repo": "Compliance-Audit-Agent",
+   "tier": "executed",
+   "files": [
+    "tests/evidence.py"
+   ]
+  },
+  {
+   "id": "SA-15",
+   "repo": "org-wide",
+   "tier": "executed",
+   "files": [
+    ".github/workflows"
+   ]
+  },
+  {
+   "id": "G-P05",
+   "repo": "Track-4-Audit-Report-Generator",
+   "tier": "executed",
+   "files": [
+    "main.py"
+   ]
+  },
+  {
+   "id": "G-P08",
+   "repo": "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+   "tier": "executed",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "G-P11",
+   "repo": "Track-2---IAM-final",
+   "tier": "executed",
+   "files": [
+    "tools/scripts/bart/web/app.py"
+   ]
+  },
+  {
+   "id": "G-P16",
+   "repo": "judging-found-controls",
+   "tier": "executed",
+   "files": [
+    "agent.py"
+   ]
+  },
+  {
+   "id": "G-P18",
+   "repo": "Finding-analysis",
+   "tier": "executed",
+   "files": [
+    "parsers/sharepoint_connector.py"
+   ]
+  },
+  {
+   "id": "G-P24",
+   "repo": "Track-2---IAM-final",
+   "tier": "executed",
+   "files": [
+    "tools/scripts/bart/web/app.py"
+   ]
+  },
+  {
+   "id": "G-P25",
+   "repo": "Track-2-Evidence-Collection-Extraction",
+   "tier": "executed",
+   "files": [
+    "compliance_qa_app.py"
+   ]
+  },
+  {
+   "id": "G-P27",
+   "repo": "Agent-Auditor",
+   "tier": "executed",
+   "files": [
+    "server/server.py"
+   ]
+  },
+  {
+   "id": "G-P28",
+   "repo": "Finding-analysis",
+   "tier": "executed",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "G-P30",
+   "repo": "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+   "tier": "executed",
+   "files": [
+    "app.py",
+    "run.py"
+   ]
+  },
+  {
+   "id": "G-P31",
+   "repo": "Team-HighTable",
+   "tier": "executed",
+   "files": [
+    "backend/main.py"
+   ]
+  },
+  {
+   "id": "G-P35",
+   "repo": "saaf-portal",
+   "tier": "executed",
+   "files": [
+    "src/app/api/admin/signups/route.ts",
+    "src/components/Navbar.tsx"
+   ]
+  },
+  {
+   "id": "SA-07",
+   "repo": "three-way-match-audit",
+   "tier": "executed",
+   "files": [
+    "webapp/app/services/matcher.py",
+    "webapp/app/services/parsers.py"
+   ]
+  },
+  {
+   "id": "SA-09",
+   "repo": "Compliance-Audit-Agent",
+   "tier": "executed",
+   "files": [
+    "scripts/orchestration.py"
+   ]
+  },
+  {
+   "id": "SA-10",
+   "repo": "Finding-analysis",
+   "tier": "executed",
+   "files": [
+    "app.py",
+    "templates/index.html"
+   ]
+  },
+  {
+   "id": "SA-11",
+   "repo": "Finding-analysis",
+   "tier": "executed",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "SA-12",
+   "repo": "Finding-analysis",
+   "tier": "executed",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "SA-13",
+   "repo": "saaf-portal",
+   "tier": "executed",
+   "files": [
+    "src/app/api/admin/signups/route.ts"
+   ]
+  },
+  {
+   "id": "SA-14",
+   "repo": "saaf-portal",
+   "tier": "executed",
+   "files": [
+    "src/app/api/admin/feedback/route.ts",
+    "src/app/api/observability/route.ts",
+    "src/app/api/signup/route.ts"
+   ]
+  },
+  {
+   "id": "SA-16",
+   "repo": "org-wide",
+   "tier": "executed",
+   "files": [
+    "OWASP-AI-Testing-Agent/.github/workflows/ci.yml",
+    "saaf-living-map (workflow)"
+   ]
+  },
+  {
+   "id": "G10-52",
+   "repo": "FieldworkOrchestration",
+   "tier": "static",
+   "files": [
+    "agents/document_evidence_extraction.py",
+    "webapp/server.py"
+   ]
+  },
+  {
+   "id": "G10-53",
+   "repo": "Finding-analysis",
+   "tier": "static",
+   "files": [
+    "parsers/sharepoint_connector.py"
+   ]
+  },
+  {
+   "id": "G10-54",
+   "repo": "OWASP-AI-Testing-Agent",
+   "tier": "static",
+   "files": [
+    "owasp_ai_testing_agent/guide.py"
+   ]
+  },
+  {
+   "id": "G10-62",
+   "repo": "judging-found-controls",
+   "tier": "static",
+   "files": [
+    "agent.py"
+   ]
+  },
+  {
+   "id": "G3-01",
+   "repo": "Agent-Auditor",
+   "tier": "static",
+   "files": [
+    "server/server.py"
+   ]
+  },
+  {
+   "id": "G3-02",
+   "repo": "Executive-Summary-Writer",
+   "tier": "static",
+   "files": [
+    "frontend/agent-service/app.py"
+   ]
+  },
+  {
+   "id": "G3-03",
+   "repo": "FieldworkOrchestration",
+   "tier": "static",
+   "files": [
+    "webapp/server.py"
+   ]
+  },
+  {
+   "id": "G3-04",
+   "repo": "Finding-analysis",
+   "tier": "static",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "G3-05",
+   "repo": "OWASP-top-10-LLM-assessment",
+   "tier": "static",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "G3-06",
+   "repo": "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+   "tier": "static",
+   "files": [
+    "app.py"
+   ]
+  },
+  {
+   "id": "G3-07",
+   "repo": "SAAF-Project",
+   "tier": "static",
+   "files": [
+    "tools/scripts/owasp-agent-reviewer/app.py"
+   ]
+  },
+  {
+   "id": "G3-08",
+   "repo": "Track-2---IAM-final",
+   "tier": "static",
+   "files": [
+    "tools/scripts/bart/web/app.py"
+   ]
+  },
+  {
+   "id": "G3-09",
+   "repo": "Track-4-Audit-Report-Generator",
+   "tier": "static",
+   "files": [
+    "main.py"
+   ]
+  },
+  {
+   "id": "G3-10",
+   "repo": "joiners-movers-leavers-agent",
+   "tier": "static",
+   "files": [
+    "web/app.py"
+   ]
+  },
+  {
+   "id": "G3-11",
+   "repo": "three-way-match-audit",
+   "tier": "static",
+   "files": [
+    "webapp/app/main.py"
+   ]
+  },
+  {
+   "id": "G5-25",
+   "repo": "saaf-portal",
+   "tier": "static",
+   "files": [
+    "scripts/process-signups.ts"
+   ]
+  },
+  {
+   "id": "G7-33",
+   "repo": "Track-2---IAM-final",
+   "tier": "static",
+   "files": []
+  },
+  {
+   "id": "G7-34",
+   "repo": "Track-2-Evidence-Collection-Extraction",
+   "tier": "static",
+   "files": []
+  },
+  {
+   "id": "G7-40",
+   "repo": "three-way-match-audit",
+   "tier": "static",
+   "files": []
+  },
+  {
+   "id": "G8-41",
+   "repo": "Agent-Auditor",
+   "tier": "static",
+   "files": []
+  },
+  {
+   "id": "G8-42",
+   "repo": "Finding-analysis",
+   "tier": "static",
+   "files": []
+  },
+  {
+   "id": "G8-44",
+   "repo": "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+   "tier": "static",
+   "files": []
+  },
+  {
+   "id": "G8-45",
+   "repo": "Team-HighTable",
+   "tier": "static",
+   "files": []
+  },
+  {
+   "id": "G9-47",
+   "repo": "saaf-portal",
+   "tier": "static",
+   "files": [
+    "src/app/api/admin/feedback/route.ts",
+    "src/app/api/admin/signups/route.ts",
+    "src/components/Navbar.tsx"
+   ]
+  },
+  {
+   "id": "G6-PORT",
+   "repo": "org-wide",
+   "tier": "portfolio",
+   "files": [
+    ".github/workflows",
+    ".github/workflows/*.yml"
+   ]
+  }
+ ],
+ "caught": [
+  [
+   "G-P02",
+   "OWASP-top-10-LLM-assessment",
+   "executed",
+   [
+    "TW-FS1",
+    "TW-LLM1",
+    "TW-NET1",
+    "TW-NET4",
+    "TW-NET5"
+   ]
+  ],
+  [
+   "G-P10",
+   "SAAF-Project",
+   "executed",
+   [
+    "TW-LLM1",
+    "TW-NET1",
+    "TW-NET4",
+    "TW-NET5"
+   ]
+  ],
+  [
+   "SA-01",
+   "OWASP-top-10-LLM-assessment",
+   "executed",
+   [
+    "TW-FS1",
+    "TW-LLM1",
+    "TW-NET1",
+    "TW-NET4",
+    "TW-NET5"
+   ]
+  ],
+  [
+   "SA-02",
+   "OWASP-top-10-LLM-assessment",
+   "executed",
+   [
+    "TW-FS1",
+    "TW-LLM1",
+    "TW-NET1",
+    "TW-NET4",
+    "TW-NET5"
+   ]
+  ],
+  [
+   "G-P01",
+   "Finding-analysis",
+   "executed",
+   [
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G-P04",
+   "joiners-movers-leavers-agent",
+   "executed",
+   [
+    "TW-FS1"
+   ]
+  ],
+  [
+   "G-P06",
+   "Agent-Auditor",
+   "executed",
+   [
+    "TW-LLM1",
+    "TW-NET2",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G-P07",
+   "FieldworkOrchestration",
+   "executed",
+   [
+    "TW-FS1",
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G-P17",
+   "FieldworkOrchestration",
+   "executed",
+   [
+    "TW-FS1",
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "SA-03",
+   "Finding-analysis",
+   "executed",
+   [
+    "TW-KEY1",
+    "TW-NET4",
+    "TW-OUT1"
+   ]
+  ],
+  [
+   "SA-04",
+   "three-way-match-audit",
+   "executed",
+   [
+    "TW-GATE1"
+   ]
+  ],
+  [
+   "G-P05",
+   "Track-4-Audit-Report-Generator",
+   "executed",
+   [
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G-P08",
+   "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+   "executed",
+   [
+    "TW-NET2",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G-P16",
+   "judging-found-controls",
+   "executed",
+   [
+    "TW-LLM1",
+    "TW-LLM2"
+   ]
+  ],
+  [
+   "G-P27",
+   "Agent-Auditor",
+   "executed",
+   [
+    "TW-LLM1",
+    "TW-NET2",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G-P28",
+   "Finding-analysis",
+   "executed",
+   [
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G-P30",
+   "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+   "executed",
+   [
+    "TW-NET1",
+    "TW-NET2",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G-P31",
+   "Team-HighTable",
+   "executed",
+   [
+    "TW-NET2"
+   ]
+  ],
+  [
+   "SA-07",
+   "three-way-match-audit",
+   "executed",
+   [
+    "TW-GATE1"
+   ]
+  ],
+  [
+   "SA-10",
+   "Finding-analysis",
+   "executed",
+   [
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "SA-11",
+   "Finding-analysis",
+   "executed",
+   [
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "SA-12",
+   "Finding-analysis",
+   "executed",
+   [
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G10-52",
+   "FieldworkOrchestration",
+   "static",
+   [
+    "TW-FS1",
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G10-62",
+   "judging-found-controls",
+   "static",
+   [
+    "TW-LLM1",
+    "TW-LLM2"
+   ]
+  ],
+  [
+   "G3-01",
+   "Agent-Auditor",
+   "static",
+   [
+    "TW-LLM1",
+    "TW-NET2",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G3-03",
+   "FieldworkOrchestration",
+   "static",
+   [
+    "TW-FS1",
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G3-04",
+   "Finding-analysis",
+   "static",
+   [
+    "TW-KEY1",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G3-05",
+   "OWASP-top-10-LLM-assessment",
+   "static",
+   [
+    "TW-FS1",
+    "TW-LLM1",
+    "TW-NET1",
+    "TW-NET4",
+    "TW-NET5"
+   ]
+  ],
+  [
+   "G3-06",
+   "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+   "static",
+   [
+    "TW-NET2",
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G3-07",
+   "SAAF-Project",
+   "static",
+   [
+    "TW-LLM1",
+    "TW-NET1",
+    "TW-NET4",
+    "TW-NET5"
+   ]
+  ],
+  [
+   "G3-09",
+   "Track-4-Audit-Report-Generator",
+   "static",
+   [
+    "TW-NET4"
+   ]
+  ],
+  [
+   "G3-10",
+   "joiners-movers-leavers-agent",
+   "static",
+   [
+    "TW-FS1"
+   ]
+  ]
+ ]
+}

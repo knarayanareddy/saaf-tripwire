@@ -61,17 +61,21 @@ Filled by `scripts/evidence.py`. A confirmed finding is *in scope* of a rule whe
 | TW-CI1 | Third-party GitHub Action not pinned to a full commit SHA | 47 (9) | SA-24, SA-41 | SA-24, SA-41 | 100% |
 | TW-CI2 | Workflow injection or over-broad token scope | 2 (2) | SA-24 | - | 0% |
 | TW-CI3 | CI guard can be replaced by a same-named module in the scanned repo | 1 (1) | SA-41 | SA-41 | 100% |
-| TW-DEP1 | Unpinned dependencies in a network-facing app or CI install | 16 (11) | SA-03 | - | 0% |
-| TW-GATE1 | Fail-open gate: failure is only logged, or unknown input defaults to PASS | 28 (14) | SA-04, SA-05, SA-06, SA-08, SA-09, SA-23 | SA-04, SA-05, SA-08, SA-09, SA-23 | 83% |
-| TW-KEY1 | Server secret reaches the browser | 5 (5) | - | - | n/a |
-| TW-LLM1 | Untrusted content reaches an LLM prompt without a fence | 76 (19) | SA-30, SA-38, SA-39 | SA-30, SA-38, SA-39 | 100% |
+| TW-DEP1 | Unpinned dependencies in a network-facing app or CI install | 12 (10) | SA-03 | - | 0% |
+| TW-FS1 | Tree walk follows symlinks / upload filename path traversal | 22 (12) | SA-37 | SA-37 | 100% |
+| TW-GATE1 | Fail-open gate: failure is only logged, or unknown input defaults to PASS | 27 (14) | SA-04, SA-05, SA-08, SA-14, SA-23 | SA-04, SA-05, SA-08, SA-14, SA-23 | 100% |
+| TW-KEY1 | Server secret reaches the browser | 4 (4) | SA-29 | SA-29 | 100% |
+| TW-LLM1 | Untrusted content reaches an LLM prompt without a fence | 97 (21) | SA-20, SA-30, SA-38, SA-39 | SA-20, SA-30, SA-38, SA-39 | 100% |
+| TW-LLM2 | LLM verdict accepted without validation or quote check | 24 (12) | SA-14, SA-20, SA-31 | SA-14, SA-20, SA-31 | 100% |
 | TW-NET1 | Server listens on all interfaces with no authentication | 6 (5) | SA-01, SA-02, SA-11, SA-12, SA-13 | SA-01, SA-02, SA-11, SA-13 | 80% |
 | TW-NET2 | CORS allows any origin | 4 (4) | SA-07, SA-12, SA-34 | SA-07, SA-12, SA-34 | 100% |
 | TW-NET4 | Unauthenticated route deletes data or spends the LLM key | 14 (9) | SA-01, SA-02, SA-11, SA-12, SA-15 | SA-01, SA-02, SA-11, SA-12, SA-15 | 100% |
-| TW-OUT1 | Data written into HTML without escaping | 29 (19) | SA-16, SA-25, SA-32, SA-33, SA-35 | SA-25, SA-33, SA-35 | 60% |
-| TW-SEC1 | Credential committed to the repository (tree or git history) | 4 (2) | SA-03 | SA-03 | 100% |
+| TW-NET5 | Server fetches a caller-controlled URL or path | 6 (3) | SA-01, SA-02, SA-11, SA-13, SA-22 | SA-01, SA-02, SA-11, SA-13, SA-22 | 100% |
+| TW-OUT1 | Data written into HTML without escaping | 31 (19) | SA-16, SA-25, SA-32, SA-33, SA-35 | SA-25, SA-33, SA-35 | 60% |
+| TW-OUT2 | CSV/Excel export without formula neutralisation | 11 (7) | SA-16 | - | 0% |
+| TW-SEC1 | Credential committed to the repository (tree or git history) | 3 (2) | SA-03 | SA-03 | 100% |
 
-Scanned 50 repos in 129.7s. Static rules catch **22/25** of the confirmed findings they target; those are 25 of all 44 confirmed findings. The rest (business logic, spec-to-code gaps, LLM output trust) are what the skill's method and `tripwire.fence` are for.
+Scanned 50 repos in 130.8s. Static rules catch **27/29** of the confirmed findings they target; those are 29 of all 44 confirmed findings. The rest (business logic, spec-to-code gaps, LLM output trust) are what the skill's method and `tripwire.fence` are for.
 <!-- EVIDENCE:END -->
 
 ## Layout

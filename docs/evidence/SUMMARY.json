@@ -1,13 +1,13 @@
 {
   "repos_scanned": 50,
-  "seconds": 129.7,
+  "seconds": 130.8,
   "slow_repos": [
     "SAAF-Project",
     "fraude-risicoanalyse-podcast"
   ],
   "confirmed_total": 44,
-  "confirmed_in_scope": 25,
-  "caught_in_scope": 22,
+  "confirmed_in_scope": 29,
+  "caught_in_scope": 27,
   "caught_any": [
     "SA-01",
     "SA-02",
@@ -16,18 +16,23 @@
     "SA-05",
     "SA-07",
     "SA-08",
-    "SA-09",
     "SA-11",
     "SA-12",
     "SA-13",
+    "SA-14",
     "SA-15",
+    "SA-20",
+    "SA-22",
     "SA-23",
     "SA-24",
     "SA-25",
+    "SA-29",
     "SA-30",
+    "SA-31",
     "SA-33",
     "SA-34",
     "SA-35",
+    "SA-37",
     "SA-38",
     "SA-39",
     "SA-41"
@@ -97,8 +102,8 @@
       "rule": "TW-DEP1",
       "title": "Unpinned dependencies in a network-facing app or CI install",
       "severity": "medium",
-      "hits": 16,
-      "repos_hit": 11,
+      "hits": 12,
+      "repos_hit": 10,
       "in_scope": [
         "SA-03"
       ],
@@ -111,7 +116,6 @@
         "Finding-analysis",
         "OWASP-AI-Testing-Agent",
         "PBC-Assistant-Isabelle---IA-AI-Hackathon",
-        "SAAF-Project",
         "Team-HighTable",
         "Track-2---IAM-final",
         "joiners-movers-leavers-agent",
@@ -119,27 +123,54 @@
       ]
     },
     {
+      "rule": "TW-FS1",
+      "title": "Tree walk follows symlinks / upload filename path traversal",
+      "severity": "medium",
+      "hits": 22,
+      "repos_hit": 12,
+      "in_scope": [
+        "SA-37"
+      ],
+      "caught": [
+        "SA-37"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "Audit-criteria",
+        "Compliance-Report-Generator",
+        "FieldworkOrchestration",
+        "OWASP-top-10-LLM-assessment",
+        "SAAF-Project",
+        "SAAF-circuit-breaker",
+        "Stress-test---standalone-criteria",
+        "agent-drift-rater",
+        "agent-rogue-risk-assessor",
+        "joiners-movers-leavers-agent",
+        "llm_owasp",
+        "saaf-guard"
+      ]
+    },
+    {
       "rule": "TW-GATE1",
       "title": "Fail-open gate: failure is only logged, or unknown input defaults to PASS",
       "severity": "high",
-      "hits": 28,
+      "hits": 27,
       "repos_hit": 14,
       "in_scope": [
         "SA-04",
         "SA-05",
-        "SA-06",
         "SA-08",
-        "SA-09",
+        "SA-14",
         "SA-23"
       ],
       "caught": [
         "SA-04",
         "SA-05",
         "SA-08",
-        "SA-09",
+        "SA-14",
         "SA-23"
       ],
-      "recall": 0.8333333333333334,
+      "recall": 1.0,
       "hit_repos": [
         "Audit-criteria",
         "CUEC_Crosscheck",
@@ -161,13 +192,16 @@
       "rule": "TW-KEY1",
       "title": "Server secret reaches the browser",
       "severity": "high",
-      "hits": 5,
-      "repos_hit": 5,
-      "in_scope": [],
-      "caught": [],
-      "recall": null,
+      "hits": 4,
+      "repos_hit": 4,
+      "in_scope": [
+        "SA-29"
+      ],
+      "caught": [
+        "SA-29"
+      ],
+      "recall": 1.0,
       "hit_repos": [
-        "Executive-Summary-Writer",
         "FieldworkOrchestration",
         "Finding-analysis",
         "SAAF-Project",
@@ -178,14 +212,16 @@
       "rule": "TW-LLM1",
       "title": "Untrusted content reaches an LLM prompt without a fence",
       "severity": "high",
-      "hits": 76,
-      "repos_hit": 19,
+      "hits": 97,
+      "repos_hit": 21,
       "in_scope": [
+        "SA-20",
         "SA-30",
         "SA-38",
         "SA-39"
       ],
       "caught": [
+        "SA-20",
         "SA-30",
         "SA-38",
         "SA-39"
@@ -193,7 +229,9 @@
       "recall": 1.0,
       "hit_repos": [
         "Agent-Auditor",
+        "Audit-criteria",
         "CUEC_Crosscheck",
+        "Executive-Summary-Writer",
         "OWASP-AI-Testing-Agent",
         "OWASP-top-10-LLM-assessment",
         "PBC-Assistant-Isabelle---IA-AI-Hackathon",
@@ -211,6 +249,38 @@
         "judging-found-controls",
         "llm_owasp",
         "saaf-guard"
+      ]
+    },
+    {
+      "rule": "TW-LLM2",
+      "title": "LLM verdict accepted without validation or quote check",
+      "severity": "high",
+      "hits": 24,
+      "repos_hit": 12,
+      "in_scope": [
+        "SA-14",
+        "SA-20",
+        "SA-31"
+      ],
+      "caught": [
+        "SA-14",
+        "SA-20",
+        "SA-31"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "Audit-criteria",
+        "Compliance-Report-Generator",
+        "OWASP-top-10-LLM-assessment",
+        "Policy-to-Controls-Extractor",
+        "SAAF-Project",
+        "Track-1---Planning-en-Orientatie",
+        "Track-2---IAM-final",
+        "Track-4-Audit-Report-Generator",
+        "Vendor_Guard",
+        "agent-drift-rater",
+        "hallucination-detection-agent",
+        "judging-found-controls"
       ]
     },
     {
@@ -299,10 +369,37 @@
       ]
     },
     {
+      "rule": "TW-NET5",
+      "title": "Server fetches a caller-controlled URL or path",
+      "severity": "high",
+      "hits": 6,
+      "repos_hit": 3,
+      "in_scope": [
+        "SA-01",
+        "SA-02",
+        "SA-11",
+        "SA-13",
+        "SA-22"
+      ],
+      "caught": [
+        "SA-01",
+        "SA-02",
+        "SA-11",
+        "SA-13",
+        "SA-22"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "OWASP-top-10-LLM-assessment",
+        "SAAF-Project",
+        "saaf-portal"
+      ]
+    },
+    {
       "rule": "TW-OUT1",
       "title": "Data written into HTML without escaping",
       "severity": "medium",
-      "hits": 29,
+      "hits": 31,
       "repos_hit": 19,
       "in_scope": [
         "SA-16",
@@ -340,10 +437,31 @@
       ]
     },
     {
+      "rule": "TW-OUT2",
+      "title": "CSV/Excel export without formula neutralisation",
+      "severity": "low",
+      "hits": 11,
+      "repos_hit": 7,
+      "in_scope": [
+        "SA-16"
+      ],
+      "caught": [],
+      "recall": 0.0,
+      "hit_repos": [
+        "Audit-Work-Program-Agent-UC-8-",
+        "CUEC_Crosscheck",
+        "SAAF-Project",
+        "Stress-test---standalone-criteria",
+        "Track-2---IAM-final",
+        "joiners-movers-leavers-agent",
+        "threewaysecurity"
+      ]
+    },
+    {
       "rule": "TW-SEC1",
       "title": "Credential committed to the repository (tree or git history)",
       "severity": "critical",
-      "hits": 4,
+      "hits": 3,
       "repos_hit": 2,
       "in_scope": [
         "SA-03"
