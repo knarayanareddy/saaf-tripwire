@@ -1,0 +1,361 @@
+{
+  "repos_scanned": 50,
+  "seconds": 129.7,
+  "slow_repos": [
+    "SAAF-Project",
+    "fraude-risicoanalyse-podcast"
+  ],
+  "confirmed_total": 44,
+  "confirmed_in_scope": 25,
+  "caught_in_scope": 22,
+  "caught_any": [
+    "SA-01",
+    "SA-02",
+    "SA-03",
+    "SA-04",
+    "SA-05",
+    "SA-07",
+    "SA-08",
+    "SA-09",
+    "SA-11",
+    "SA-12",
+    "SA-13",
+    "SA-15",
+    "SA-23",
+    "SA-24",
+    "SA-25",
+    "SA-30",
+    "SA-33",
+    "SA-34",
+    "SA-35",
+    "SA-38",
+    "SA-39",
+    "SA-41"
+  ],
+  "rules": [
+    {
+      "rule": "TW-CI1",
+      "title": "Third-party GitHub Action not pinned to a full commit SHA",
+      "severity": "low",
+      "hits": 47,
+      "repos_hit": 9,
+      "in_scope": [
+        "SA-24",
+        "SA-41"
+      ],
+      "caught": [
+        "SA-24",
+        "SA-41"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "Compliance-Report-Generator",
+        "OWASP-AI-Testing-Agent",
+        "SAAF-Project",
+        "Track-2---IAM-final",
+        "agent-rogue-risk-assessor",
+        "demo-repository",
+        "judging-found-controls",
+        "saaf-guard",
+        "saaf-living-map"
+      ]
+    },
+    {
+      "rule": "TW-CI2",
+      "title": "Workflow injection or over-broad token scope",
+      "severity": "high",
+      "hits": 2,
+      "repos_hit": 2,
+      "in_scope": [
+        "SA-24"
+      ],
+      "caught": [],
+      "recall": 0.0,
+      "hit_repos": [
+        "Compliance-Report-Generator",
+        "demo-repository"
+      ]
+    },
+    {
+      "rule": "TW-CI3",
+      "title": "CI guard can be replaced by a same-named module in the scanned repo",
+      "severity": "low",
+      "hits": 1,
+      "repos_hit": 1,
+      "in_scope": [
+        "SA-41"
+      ],
+      "caught": [
+        "SA-41"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "saaf-guard"
+      ]
+    },
+    {
+      "rule": "TW-DEP1",
+      "title": "Unpinned dependencies in a network-facing app or CI install",
+      "severity": "medium",
+      "hits": 16,
+      "repos_hit": 11,
+      "in_scope": [
+        "SA-03"
+      ],
+      "caught": [],
+      "recall": 0.0,
+      "hit_repos": [
+        "Agent-Auditor",
+        "Executive-Summary-Writer",
+        "FieldworkOrchestration",
+        "Finding-analysis",
+        "OWASP-AI-Testing-Agent",
+        "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+        "SAAF-Project",
+        "Team-HighTable",
+        "Track-2---IAM-final",
+        "joiners-movers-leavers-agent",
+        "saaf-living-map"
+      ]
+    },
+    {
+      "rule": "TW-GATE1",
+      "title": "Fail-open gate: failure is only logged, or unknown input defaults to PASS",
+      "severity": "high",
+      "hits": 28,
+      "repos_hit": 14,
+      "in_scope": [
+        "SA-04",
+        "SA-05",
+        "SA-06",
+        "SA-08",
+        "SA-09",
+        "SA-23"
+      ],
+      "caught": [
+        "SA-04",
+        "SA-05",
+        "SA-08",
+        "SA-09",
+        "SA-23"
+      ],
+      "recall": 0.8333333333333334,
+      "hit_repos": [
+        "Audit-criteria",
+        "CUEC_Crosscheck",
+        "ExecGRC",
+        "GDPR-AI-Audit-Agent",
+        "RCM-Builder",
+        "SAAF-Project",
+        "Stress-test---standalone-criteria",
+        "Track-2---IAM-final",
+        "agent-drift-rater",
+        "fraude-risicoanalyse-podcast",
+        "hallucination-detection-agent",
+        "saaf-guard",
+        "three-way-match-audit",
+        "threewaysecurity"
+      ]
+    },
+    {
+      "rule": "TW-KEY1",
+      "title": "Server secret reaches the browser",
+      "severity": "high",
+      "hits": 5,
+      "repos_hit": 5,
+      "in_scope": [],
+      "caught": [],
+      "recall": null,
+      "hit_repos": [
+        "Executive-Summary-Writer",
+        "FieldworkOrchestration",
+        "Finding-analysis",
+        "SAAF-Project",
+        "Track-2---IAM-final"
+      ]
+    },
+    {
+      "rule": "TW-LLM1",
+      "title": "Untrusted content reaches an LLM prompt without a fence",
+      "severity": "high",
+      "hits": 76,
+      "repos_hit": 19,
+      "in_scope": [
+        "SA-30",
+        "SA-38",
+        "SA-39"
+      ],
+      "caught": [
+        "SA-30",
+        "SA-38",
+        "SA-39"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "Agent-Auditor",
+        "CUEC_Crosscheck",
+        "OWASP-AI-Testing-Agent",
+        "OWASP-top-10-LLM-assessment",
+        "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+        "Policy-to-Controls-Extractor",
+        "SAAF-Project",
+        "Stress-test---standalone-criteria",
+        "Team-HighTable",
+        "Track-2---IAM-final",
+        "Track-2-Evidence-Collection-Extraction",
+        "Track-4-Audit-Report-Generator",
+        "Vendor_Guard",
+        "agent-drift-rater",
+        "hallucination-detection-agent",
+        "joiners-movers-leavers-agent",
+        "judging-found-controls",
+        "llm_owasp",
+        "saaf-guard"
+      ]
+    },
+    {
+      "rule": "TW-NET1",
+      "title": "Server listens on all interfaces with no authentication",
+      "severity": "medium",
+      "hits": 6,
+      "repos_hit": 5,
+      "in_scope": [
+        "SA-01",
+        "SA-02",
+        "SA-11",
+        "SA-12",
+        "SA-13"
+      ],
+      "caught": [
+        "SA-01",
+        "SA-02",
+        "SA-11",
+        "SA-13"
+      ],
+      "recall": 0.8,
+      "hit_repos": [
+        "OWASP-top-10-LLM-assessment",
+        "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+        "SAAF-Project",
+        "Track-4-Audit-Report-Generator",
+        "saaf-guard"
+      ]
+    },
+    {
+      "rule": "TW-NET2",
+      "title": "CORS allows any origin",
+      "severity": "medium",
+      "hits": 4,
+      "repos_hit": 4,
+      "in_scope": [
+        "SA-07",
+        "SA-12",
+        "SA-34"
+      ],
+      "caught": [
+        "SA-07",
+        "SA-12",
+        "SA-34"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "Agent-Auditor",
+        "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+        "Team-HighTable",
+        "saaf-guard"
+      ]
+    },
+    {
+      "rule": "TW-NET4",
+      "title": "Unauthenticated route deletes data or spends the LLM key",
+      "severity": "medium",
+      "hits": 14,
+      "repos_hit": 9,
+      "in_scope": [
+        "SA-01",
+        "SA-02",
+        "SA-11",
+        "SA-12",
+        "SA-15"
+      ],
+      "caught": [
+        "SA-01",
+        "SA-02",
+        "SA-11",
+        "SA-12",
+        "SA-15"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "Agent-Auditor",
+        "FieldworkOrchestration",
+        "Finding-analysis",
+        "OWASP-top-10-LLM-assessment",
+        "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+        "SAAF-Project",
+        "SAAF-circuit-breaker",
+        "Track-4-Audit-Report-Generator",
+        "saaf-guard"
+      ]
+    },
+    {
+      "rule": "TW-OUT1",
+      "title": "Data written into HTML without escaping",
+      "severity": "medium",
+      "hits": 29,
+      "repos_hit": 19,
+      "in_scope": [
+        "SA-16",
+        "SA-25",
+        "SA-32",
+        "SA-33",
+        "SA-35"
+      ],
+      "caught": [
+        "SA-25",
+        "SA-33",
+        "SA-35"
+      ],
+      "recall": 0.6,
+      "hit_repos": [
+        "Agent-Auditor",
+        "Audit-criteria",
+        "CUEC_Crosscheck",
+        "ExecGRC",
+        "FieldworkOrchestration",
+        "Finding-analysis",
+        "PBC-Assistant-Isabelle---IA-AI-Hackathon",
+        "SAAF-Project",
+        "SAAF-circuit-breaker",
+        "Stress-test---standalone-criteria",
+        "Track-1---Planning-en-Orientatie",
+        "Track-2---IAM-final",
+        "Vendor_Guard",
+        "agent-drift-rater",
+        "fraude-risicoanalyse-podcast",
+        "joiners-movers-leavers-agent",
+        "saaf-guard",
+        "saaf-living-map",
+        "website"
+      ]
+    },
+    {
+      "rule": "TW-SEC1",
+      "title": "Credential committed to the repository (tree or git history)",
+      "severity": "critical",
+      "hits": 4,
+      "repos_hit": 2,
+      "in_scope": [
+        "SA-03"
+      ],
+      "caught": [
+        "SA-03"
+      ],
+      "recall": 1.0,
+      "hit_repos": [
+        "ExecGRC",
+        "Team-HighTable"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+on: workflow_call
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ runner.temp }}/tool
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -c "import mytool; mytool.main('.')"

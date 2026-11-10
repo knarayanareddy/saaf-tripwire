@@ -1,0 +1,9 @@
+on: push
+permissions: {contents: read}
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python -m pip install -r requirements.txt
+          pip install -e . pyyaml==6.0.1

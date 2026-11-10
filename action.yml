@@ -1,0 +1,95 @@
+name: SAAF Tripwire
+description: One deterministic security guard built from a probe-backed audit of 50 SAAF repos. Scans the repo (and its git history), fails on findings at or above a threshold, and shows them inline on PRs via SARIF.
+branding:
+  icon: shield
+  color: red
+inputs:
+  path:
+    description: Directory to scan, relative to the workspace.
+    default: "."
+  fail-on:
+    description: Fail the check on findings at or above this severity (critical, high, medium, low).
+    default: high
+  history:
+    description: Also scan full git history for secrets (needs actions/checkout with fetch-depth 0).
+    default: "true"
+  baseline:
+    description: Optional baseline file (relative to path) of accepted findings, for gradual adoption.
+    default: ""
+  upload-sarif:
+    description: Upload results to GitHub code scanning (needs security-events write).
+    default: "true"
+  audit-dependencies:
+    description: Online step - fail on critical npm advisories / known PyPI advisories (pip-audit, no package install).
+    default: "false"
+  python-version:
+    description: Python used to run the guard.
+    default: "3.12"
+outputs:
+  exit-code:
+    description: 0 clean, 1 findings at or above fail-on, 2 guard error.
+    value: ${{ steps.scan.outputs.exit-code }}
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install SAAF Tripwire from the action's own pinned source
+      shell: bash
+      env:
+        TW_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        python -m venv "$RUNNER_TEMP/tripwire-venv"
+        "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m pip install --quiet --disable-pip-version-check --no-deps "$TW_ACTION_PATH/"
+
+    - name: Scan
+      id: scan
+      shell: bash
+      env:
+        TW_PATH: ${{ inputs.path }}
+        TW_FAIL_ON: ${{ inputs.fail-on }}
+        TW_HISTORY: ${{ inputs.history }}
+        TW_BASELINE: ${{ inputs.baseline }}
+      # python -P: the scanned repo is the working directory; -P keeps it off sys.path so a planted
+      # tripwire/ package in that repo can never replace the guard (SAAF finding SA-41).
+      run: |
+        set -uo pipefail
+        args=(scan "$TW_PATH" --fail-on "$TW_FAIL_ON" --sarif-out "$RUNNER_TEMP/tripwire.sarif")
+        if [ "$TW_HISTORY" != "true" ]; then args+=(--no-history); fi
+        if [ -n "$TW_BASELINE" ]; then args+=(--baseline "$TW_PATH/$TW_BASELINE"); fi
+        "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m tripwire "${args[@]}"
+        code=$?
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        echo "sarif=$RUNNER_TEMP/tripwire.sarif" >> "$GITHUB_OUTPUT"
+
+    - name: Upload SARIF to code scanning
+      if: always() && inputs.upload-sarif == 'true' && steps.scan.outputs.sarif != ''
+      uses: github/codeql-action/upload-sarif@9418214df1f2c4b8128c770156c409013b07d6b9 # v3
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarif }}
+        checkout_path: ${{ github.workspace }}/${{ inputs.path }}
+        category: saaf-tripwire
+
+    - name: Dependency advisories (online, optional)
+      if: inputs.audit-dependencies == 'true'
+      shell: bash
+      env:
+        TW_PATH: ${{ inputs.path }}
+      run: |
+        set -euo pipefail
+        "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m pip install --quiet --disable-pip-version-check "pip-audit==2.10.1"
+        PATH="$RUNNER_TEMP/tripwire-venv/bin:$PATH" "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m tripwire.deps "$TW_PATH"
+
+    - name: Gate
+      shell: bash
+      env:
+        TW_CODE: ${{ steps.scan.outputs.exit-code }}
+        TW_FAIL_ON: ${{ inputs.fail-on }}
+      run: |
+        if [ "$TW_CODE" = "0" ]; then echo "SAAF Tripwire: clean at --fail-on $TW_FAIL_ON"; exit 0; fi
+        if [ "$TW_CODE" = "1" ]; then echo "::error::SAAF Tripwire found issues at or above $TW_FAIL_ON (see log and Security tab)"; exit 1; fi
+        echo "::error::SAAF Tripwire could not complete the scan (exit $TW_CODE); failing closed"; exit 1

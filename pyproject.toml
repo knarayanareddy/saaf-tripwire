@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "saaf-tripwire"
+dynamic = ["version"]
+description = "SAAF Tripwire: one deterministic security guard built from a probe-backed audit of 50 SAAF repos."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7", "pyyaml>=6"]
+
+[project.scripts]
+tripwire = "tripwire.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "tripwire.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["tripwire*"]
+
+[tool.setuptools.package-data]
+tripwire = ["**/*.json", "**/*.txt", "**/*.yml", "**/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

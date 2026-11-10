@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAAF Tripwire</title>
+<meta name="description" content="One guard, three faces: a deterministic security check built from a probe-backed audit of all 50 SAAF repos.">
+<style>
+:root{
+  --bg:#f6f4ef; --surface:#ffffff; --surface-2:#efece4; --ink:#16181d; --ink-2:#4a4f5a; --ink-3:#7a808c;
+  --line:#dcd7cc; --accent:#d4380d; --accent-ink:#ffffff; --accent-soft:#fbe3d9;
+  --ok:#2f7d4f; --crit:#b4232a; --high:#d4380d; --med:#b7791f; --low:#4b6ea8;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1115; --surface:#171a21; --surface-2:#1e222b; --ink:#eceae4; --ink-2:#b4b8c2; --ink-3:#848a96;
+    --line:#2a2f3a; --accent:#ff6a3d; --accent-ink:#14161b; --accent-soft:#3a1f16;
+    --ok:#5cc28a; --crit:#ff5c63; --high:#ff6a3d; --med:#e3a548; --low:#7fa2e0; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --surface:#171a21; --surface-2:#1e222b; --ink:#eceae4; --ink-2:#b4b8c2; --ink-3:#848a96;
+  --line:#2a2f3a; --accent:#ff6a3d; --accent-ink:#14161b; --accent-soft:#3a1f16;
+  --ok:#5cc28a; --crit:#ff5c63; --high:#ff6a3d; --med:#e3a548; --low:#7fa2e0; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+header.top{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+.brand{display:flex;gap:10px;align-items:center;font-weight:700;letter-spacing:.02em}
+.brand svg{width:26px;height:26px}
+.toggle{background:var(--surface);color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.hero{padding:40px 0 28px}
+.kicker{font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(34px,6.4vw,64px);line-height:1.04;letter-spacing:-.025em;margin:14px 0 16px;max-width:15ch}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:clamp(17px,2.2vw,20px);color:var(--ink-2);max-width:62ch;margin:0}
+section{padding:36px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(22px,3.2vw,30px);letter-spacing:-.015em;margin:6px 0 8px}
+.sub{color:var(--ink-2);margin:0 0 22px;max-width:66ch}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.stat b{display:block;font-size:clamp(40px,7vw,58px);line-height:1;letter-spacing:-.03em}
+.stat b.hot{color:var(--accent)}
+.stat span{display:block;margin-top:8px;color:var(--ink-2);font-size:15px}
+.fine{font-size:13px;color:var(--ink-3);margin-top:14px}
+.story{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:18px 20px;margin-top:18px}
+.story p{margin:0}
+.story .tag{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;display:block}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+.diagram svg{display:block;width:100%;height:auto}
+.diagram svg.d-v{display:none}
+@media (max-width:640px){.diagram svg.d-h{display:none}.diagram svg.d-v{display:block;max-width:420px;margin:0 auto}}
+svg .box{fill:var(--surface-2);stroke:var(--line);stroke-width:1.5}
+svg .core{fill:var(--accent);stroke:none}
+svg .core-t{fill:var(--accent-ink)}
+svg .t{fill:var(--ink);font:600 15px var(--sans)}
+svg .s{fill:var(--ink-2);font:13px var(--sans)}
+svg .m{fill:var(--ink-3);font:12px var(--mono)}
+svg .ln{stroke:var(--ink-3);stroke-width:1.6;fill:none}
+svg .ah{fill:var(--ink-3)}
+svg text.core-t{fill:var(--accent-ink)}
+.faces{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.face{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.face h3{margin:0 0 6px;font-size:17px}
+.face p{margin:0;color:var(--ink-2);font-size:15px}
+.face .n{font:600 12px var(--mono);color:var(--accent)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;vertical-align:top;padding:14px 16px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+th{font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2)}
+.rid{white-space:nowrap}
+.mono,code{font-family:var(--mono);font-size:.9em}
+code{background:var(--surface-2);padding:1px 5px;border-radius:5px}
+.why{color:var(--ink-2);margin-top:4px;font-size:14px}
+.sev{display:block;margin-top:6px;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.sev-critical{color:var(--crit)}.sev-high{color:var(--high)}.sev-medium{color:var(--med)}.sev-low{color:var(--low)}
+.chip{display:inline-block;max-width:100%;overflow-wrap:anywhere;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-size:12.5px;}
+.seen{min-width:160px}
+.stat,.face,.step,.card{min-width:0}
+pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;font:13.5px/1.55 var(--mono);margin:0}
+.c{color:var(--ink-3)}.k{color:var(--accent)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:15px}
+.step b{font:600 12px var(--mono);color:var(--accent);display:block;margin-bottom:4px}
+.proof{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.not{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.not ul{margin:8px 0 0;padding-left:20px;color:var(--ink-2)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0;font-size:16px}
+.yes h3{color:var(--ok)}.no h3{color:var(--ink-3)}
+footer{padding:28px 0 48px;color:var(--ink-3);font-size:13px;border-top:1px solid var(--line)}
+@media (max-width:760px){
+  .stats,.faces,.steps,.proof,.not{grid-template-columns:1fr}
+  th,td{padding:12px}
+  section{padding:28px 0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4z" fill="var(--accent)"/><path d="M5 13h14" stroke="var(--accent-ink)" stroke-width="2.2" stroke-linecap="round"/></svg>SAAF Tripwire</div>
+  <button class="toggle" id="tt" type="button" aria-label="Switch colour theme">Light / dark</button>
+</header>
+
+<div class="hero">
+  <div class="kicker">One guard &middot; built from 50 real repos</div>
+  <h1>The bad actor trips the wire <em>before</em> the code ships.</h1>
+  <p class="lede">We attacked every SAAF agent repository, proved each weakness with a before-and-after test, and turned what kept repeating into one guard any SAAF repo can switch on in three lines.</p>
+</div>
+
+<section>
+  <div class="kicker">The problem</div>
+  <h2>What we found across the SAAF organisation</h2>
+  <div class="stats">
+    <div class="stat"><b>50</b><span>repositories audited, end to end (48 with code, 2 empty)</span></div>
+    <div class="stat"><b class="hot">44</b><span>weaknesses confirmed, each with a test that fails before the fix and passes after</span></div>
+    <div class="stat"><b>6</b><span>rated high: payments released, server files read, live-looking keys in git history</span></div>
+  </div>
+  <p class="fine">Also: 40 suspected issues rejected by an independent checker, 34 still waiting for a checker and not counted. Every one of the 44 fixes was shown to work in a staging copy. Nothing was pushed to SAAF repos.</p>
+  <div class="story">
+    <span class="tag">The bad actor &middot; Agent-Auditor (SA-07)</span>
+    <p>An auditor runs Agent-Auditor on their laptop and opens an ordinary-looking web page. That page quietly tells the tool to create a branch and commit the attacker&rsquo;s text to any GitHub repo the auditor can write to, under the auditor&rsquo;s name. Two lines made it possible: the server accepts calls from <em>any</em> website, and it asks for no login.</p>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">How it works</div>
+  <h2>One engine, three faces</h2>
+  <p class="sub">The engine is plain, offline Python: no AI model in the loop, same answer every run, a whole repo in seconds. Each face is a thin wrapper around the same engine.</p>
+  <div class="diagram">
+    <svg class="d-h" viewBox="0 0 960 320" role="img" aria-label="A push to a SAAF repo runs the Tripwire engine, which reports through a CI check, a reusable workflow and a Claude skill">
+      <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" class="ah"/></marker></defs>
+      <rect class="box" x="20" y="118" width="190" height="84" rx="14"/>
+      <text class="t" x="115" y="152" text-anchor="middle">Push or pull request</text>
+      <text class="s" x="115" y="176" text-anchor="middle">to any SAAF repo</text>
+      <path class="ln" d="M212 160H318" marker-end="url(#a1)"/>
+      <rect class="core" x="322" y="84" width="260" height="152" rx="18"/>
+      <text class="t core-t" x="452" y="128" text-anchor="middle" style="font-size:19px">Tripwire engine</text>
+      <text class="s core-t" x="452" y="156" text-anchor="middle">11 rules from the audit</text>
+      <text class="s core-t" x="452" y="178" text-anchor="middle">offline &middot; no AI &middot; same result</text>
+      <text class="s core-t" x="452" y="200" text-anchor="middle">every run</text>
+      <path class="ln" d="M584 160C640 160 640 60 700 60" marker-end="url(#a1)"/>
+      <path class="ln" d="M584 160H700" marker-end="url(#a1)"/>
+      <path class="ln" d="M584 160C640 160 640 260 700 260" marker-end="url(#a1)"/>
+      <rect class="box" x="704" y="22" width="236" height="76" rx="12"/>
+      <text class="t" x="722" y="52">CI check</text>
+      <text class="s" x="722" y="76">blocks the merge, flags the line</text>
+      <rect class="box" x="704" y="122" width="236" height="76" rx="12"/>
+      <text class="t" x="722" y="152">Reusable workflow</text>
+      <text class="s" x="722" y="176">+ full git-history secret scan</text>
+      <rect class="box" x="704" y="222" width="236" height="76" rx="12"/>
+      <text class="t" x="722" y="252">Claude skill</text>
+      <text class="s" x="722" y="276">auditee documents = data only</text>
+    </svg>
+    <svg class="d-v" viewBox="0 0 360 560" role="img" aria-label="A push runs the Tripwire engine, which reports through a CI check, a reusable workflow and a Claude skill">
+      <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" class="ah"/></marker></defs>
+      <rect class="box" x="70" y="10" width="220" height="70" rx="14"/>
+      <text class="t" x="180" y="40" text-anchor="middle">Push or pull request</text>
+      <text class="s" x="180" y="62" text-anchor="middle">to any SAAF repo</text>
+      <path class="ln" d="M180 82V128" marker-end="url(#a2)"/>
+      <rect class="core" x="40" y="132" width="280" height="120" rx="18"/>
+      <text class="t core-t" x="180" y="170" text-anchor="middle" style="font-size:19px">Tripwire engine</text>
+      <text class="s core-t" x="180" y="196" text-anchor="middle">11 rules from the audit</text>
+      <text class="s core-t" x="180" y="218" text-anchor="middle">offline &middot; no AI &middot; repeatable</text>
+      <path class="ln" d="M180 254V292" marker-end="url(#a2)"/>
+      <rect class="box" x="20" y="296" width="320" height="70" rx="12"/>
+      <text class="t" x="38" y="326">CI check</text>
+      <text class="s" x="38" y="350">blocks the merge, flags the line</text>
+      <rect class="box" x="20" y="382" width="320" height="70" rx="12"/>
+      <text class="t" x="38" y="412">Reusable workflow</text>
+      <text class="s" x="38" y="436">+ full git-history secret scan</text>
+      <rect class="box" x="20" y="468" width="320" height="70" rx="12"/>
+      <text class="t" x="38" y="498">Claude skill</text>
+      <text class="s" x="38" y="522">auditee documents = data only</text>
+    </svg>
+  </div>
+  <div class="faces">
+    <div class="face"><span class="n">01 &middot; CI check</span><h3>Stops it at the door</h3><p>Runs on every push and pull request. Fails the build on serious findings and shows each one on the exact line in the pull request.</p></div>
+    <div class="face"><span class="n">02 &middot; Reusable workflow</span><h3>Reads the whole past</h3><p>One shared workflow for every repo. It also scans every old commit for keys, because deleting a file does not delete it from history.</p></div>
+    <div class="face"><span class="n">03 &middot; Claude skill</span><h3>Keeps the AI honest</h3><p>Wraps every auditee document so the model treats it as evidence, never as orders, and rejects any quote that is not really in the document.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">The rules</div>
+  <h2>Every rule names the SAAF repos where we saw the problem</h2>
+  <p class="sub">Not a generic checklist. Each rule comes from a weakness found in this audit, and ships with test cases that must fire and look-alikes that must stay quiet.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Rule</th><th>What it stops, and why it matters</th><th>Seen in</th></tr></thead>
+      <tbody>
+<tr><td class="rid"><span class="mono">TW-SEC1</span><span class="sev sev-critical">critical</span></td><td><strong>Credential committed to the repository (tree or git history)</strong><div class="why">Anyone who can read or clone the repo can use a committed key; deleting the file does not remove it from history.</div></td><td class="seen"><span class="chip">Team-HighTable</span><span class="chip">ExecGRC</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-CI2</span><span class="sev sev-high">high</span></td><td><strong>Workflow injection or over-broad token scope</strong><div class="why">A PR title, issue body or branch name expanded into run: becomes shell code running with the repo token.</div></td><td class="seen"><span class="chip">Compliance-Report-Generator</span><span class="chip">demo-repository</span><span class="chip">judging-found-controls</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-GATE1</span><span class="sev sev-high">high</span></td><td><strong>Fail-open gate: failure is only logged, or unknown input defaults to PASS</strong><div class="why">A crafted record (unknown PO, schema violation, NaN amount, AC-1 hidden behind AC-10, low-confidence hallucination) slips through a gate that logs instead of blocking, and is approved or paid.</div></td><td class="seen"><span class="chip">threewaysecurity</span><span class="chip">CUEC_Crosscheck</span><span class="chip">three-way-match-audit</span><span class="chip">Audit-criteria</span><span class="chip">SAAF-Project</span><span class="chip">hallucination-detection-agent</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-LLM1</span><span class="sev sev-high">high</span></td><td><strong>Untrusted content reaches an LLM prompt without a fence</strong><div class="why">Auditee documents, files, tickets or scanned code can close a static delimiter (<code></code><code>, &lt;document&gt;, &lt;/untrusted_input x&gt;) or forge an auditor block and steer the verdict (prompt injection).</code></div></td><td class="seen"><span class="chip">llm_owasp</span><span class="chip">CUEC_Crosscheck</span><span class="chip">Track-2-Evidence-Collection-Extraction</span><span class="chip">OWASP-AI-Testing-Agent</span><span class="chip">joiners-movers-leavers-agent</span><span class="chip">Vendor_Guard</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-DEP1</span><span class="sev sev-medium">medium</span></td><td><strong>Unpinned dependencies in a network-facing app or CI install</strong><div class="why">Unpinned installs pull whatever version is newest at build time, so a hijacked or broken release ships straight into a running server.</div></td><td class="seen"><span class="chip">Team-HighTable</span><span class="chip">Finding-analysis</span><span class="chip">PBC-Assistant-Isabelle---IA-AI-Hackathon</span><span class="chip">FieldworkOrchestration</span><span class="chip">saaf-living-map</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-NET1</span><span class="sev sev-medium">medium</span></td><td><strong>Server listens on all interfaces with no authentication</strong><div class="why">Anyone on the same network (cafe Wi-Fi, office LAN, cloud VPC) can call every route, spend the API key and read or change data.</div></td><td class="seen"><span class="chip">OWASP-top-10-LLM-assessment</span><span class="chip">SAAF-Project</span><span class="chip">PBC-Assistant-Isabelle---IA-AI-Hackathon</span><span class="chip">Track-4-Audit-Report-Generator</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-NET2</span><span class="sev sev-medium">medium</span></td><td><strong>CORS allows any origin</strong><div class="why">Any web page the operator visits can call the API from their browser (even on localhost) and read the answers.</div></td><td class="seen"><span class="chip">Agent-Auditor</span><span class="chip">PBC-Assistant-Isabelle---IA-AI-Hackathon</span><span class="chip">Team-HighTable</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-NET4</span><span class="sev sev-medium">medium</span></td><td><strong>Unauthenticated route deletes data or spends the LLM key</strong><div class="why">One anonymous request wipes evidence, resets the database or burns the operator&#x27;s paid API quota.</div></td><td class="seen"><span class="chip">SAAF-circuit-breaker</span><span class="chip">OWASP-top-10-LLM-assessment</span><span class="chip">PBC-Assistant-Isabelle---IA-AI-Hackathon</span><span class="chip">Track-4-Audit-Report-Generator</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-OUT1</span><span class="sev sev-medium">medium</span></td><td><strong>Data written into HTML without escaping</strong><div class="why">A PR title, file name, model answer or uploaded document that contains &lt;script&gt; runs in the reader&#x27;s browser and can steal tokens kept there.</div></td><td class="seen"><span class="chip">Audit-criteria</span><span class="chip">Track-1---Planning-en-Orientatie</span><span class="chip">Track-2---IAM-final</span><span class="chip">SAAF-Project</span><span class="chip">Finding-analysis</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-CI1</span><span class="sev sev-low">low</span></td><td><strong>Third-party GitHub Action not pinned to a full commit SHA</strong><div class="why">A mutable tag (@v2, @main) lets whoever controls the upstream repo swap the code that runs with your token (tj-actions, 2025).</div></td><td class="seen"><span class="chip">Compliance-Report-Generator</span><span class="chip">agent-rogue-risk-assessor</span><span class="chip">demo-repository</span><span class="chip">saaf-guard</span></td></tr>
+<tr><td class="rid"><span class="mono">TW-CI3</span><span class="sev sev-low">low</span></td><td><strong>CI guard can be replaced by a same-named module in the scanned repo</strong><div class="why"><code>python -m pkg</code> puts cwd first on sys.path; an auditee adds pkg/ to its repo and the gate always passes.</div></td><td class="seen"><span class="chip">saaf-guard</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Adoption</div>
+  <h2>Three lines, any SAAF repo</h2>
+  <div class="steps">
+    <div class="step"><b>1 &middot; Copy</b>Add one file: <code>.github/workflows/tripwire.yml</code></div>
+    <div class="step"><b>2 &middot; Pin</b>Point it at a fixed Tripwire release, so nobody can swap the guard</div>
+    <div class="step"><b>3 &middot; Push</b>Every push and pull request is checked from then on</div>
+  </div>
+<pre><span class="k">name:</span> SAAF Tripwire
+<span class="k">on:</span> [push, pull_request]
+<span class="k">permissions:</span> { contents: read, security-events: write }
+<span class="k">jobs:</span>
+  <span class="k">tripwire:</span>
+    <span class="k">uses:</span> SAAF-Project/saaf-tripwire/.github/workflows/tripwire.yml@&lt;release-sha&gt;
+    <span class="k">with:</span> { tripwire-ref: "&lt;release-sha&gt;" }  <span class="c"># optional: baseline: tripwire-baseline.json</span></pre>
+  <p class="fine">Old repo with old problems? Record today&rsquo;s findings once with <code>--write-baseline</code>, then <code>--baseline</code> fails only on new ones. Clean up the backlog at your own pace.</p>
+</section>
+
+<section>
+  <div class="kicker">Proof</div>
+  <h2>Run it on the real repos</h2>
+  <div class="proof">
+    <div class="stat"><b class="hot">14/17</b><span>of the confirmed findings the rules target were caught on the real repos (50 repos scanned in 75.3 s)</span></div>
+    <div class="stat"><b>11</b><span>rules, each traced to SAAF repos where the weakness was seen</span></div>
+    <div class="stat"><b>57</b><span>test cases: bad examples that must trip, safe look-alikes that must not</span></div>
+  </div>
+  <p class="sub" style="margin-top:22px">Live demo, one command:</p>
+<pre><span class="c"># from the saaf-tripwire folder</span>
+python3 demo/run_demo.py</pre>
+  <p class="fine">The demo runs the guard against real SAAF repos from the audit and shows what it catches. Credential values are always masked after 4 characters.</p>
+</section>
+
+<section>
+  <div class="kicker">Honest limits</div>
+  <h2>What it catches, and what it does not</h2>
+  <div class="not">
+    <div class="card yes"><h3>Catches, every time</h3><ul>
+      <li>Keys and tokens committed now or in the past</li>
+      <li>Servers open to the network or to any website</li>
+      <li>Untrusted text pasted into web pages unescaped</li>
+      <li>CI pipelines an outsider can hijack or swap out</li>
+      <li>Approval gates that log a failure and carry on</li>
+    </ul></div>
+    <div class="card no"><h3>Leaves to people and the skill</h3><ul>
+      <li>Whether a business rule is the right rule (it checks that gates fail closed, not what they should decide)</li>
+      <li>Whether an AI agent&rsquo;s verdict is right (the skill checks its quotes are real)</li>
+      <li>Weaknesses in a running system rather than its code</li>
+    </ul></div>
+  </div>
+</section>
+
+<footer>SAAF Tripwire &middot; built from the SAAF-Project red-team audit (50 repos, 44 confirmed findings, 114 before/after probes). Audited repos were never modified.</footer>
+</div>
+<script>
+(function(){
+  var r=document.documentElement,b=document.getElementById('tt'),k='tw-theme';
+  try{var s=localStorage.getItem(k);if(s)r.setAttribute('data-theme',s);}catch(e){}
+  b.addEventListener('click',function(){
+    var cur=r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    var n=cur==='dark'?'light':'dark';r.setAttribute('data-theme',n);
+    try{localStorage.setItem(k,n);}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

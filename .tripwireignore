@@ -1,0 +1,8 @@
+# Test fixtures are deliberately vulnerable samples; they must fire in tests, not in the self-scan.
+tests/fixtures/
+# Demo: an unmodified copy of the vulnerable llm_owasp auditor and a planted auditee repo, kept to show the
+# guard firing. demo/guarded_auditor.py (the fixed version) is still scanned.
+demo/vendor/
+demo/auditee_repo/
+# Red-team evasion cases: deliberately vulnerable, they exist to attack the rules.
+redteam/

@@ -1,0 +1,13 @@
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - uses: github/codeql-action/init@v3
+      - run: |
+          git clone https://github.com/example/tool.git /tmp/tool
+          git -C /tmp/tool checkout 0123456789abcdef0123456789abcdef01234567

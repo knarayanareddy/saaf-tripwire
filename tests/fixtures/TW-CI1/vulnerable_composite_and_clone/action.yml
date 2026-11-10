@@ -1,0 +1,9 @@
+name: my-action
+runs:
+  using: composite
+  steps:
+    - uses: softprops/action-gh-release@v2.0.1
+    - run: git clone --depth 1 https://github.com/example/tool.git "$RUNNER_TEMP/tool"
+      shell: bash
+    - run: curl -sSL https://example.com/install.sh | bash
+      shell: bash

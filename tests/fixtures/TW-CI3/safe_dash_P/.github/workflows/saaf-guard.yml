@@ -1,0 +1,15 @@
+name: Guard
+on:
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git clone --depth 1 https://github.com/SAAF-Project/saaf-guard.git "$RUNNER_TEMP/saaf-guard"
+      - name: Check
+        run: |
+          PYTHONPATH="$RUNNER_TEMP/saaf-guard" python -P -m saaf_guard.check . --fail-on high

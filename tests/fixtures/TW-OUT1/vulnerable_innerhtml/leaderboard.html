@@ -1,0 +1,9 @@
+<html><body><div id="act"></div>
+<script>
+function renderActivity(prs) {
+  const el = document.getElementById('act');
+  el.innerHTML = prs.map(pr => {
+    return `<div class="act-item"><a href="${pr.url}">${pr.title}</a> by @${pr.author} (${pr.score} pts)</div>`;
+  }).join('');
+}
+</script></body></html>

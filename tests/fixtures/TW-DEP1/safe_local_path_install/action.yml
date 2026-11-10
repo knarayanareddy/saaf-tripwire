@@ -1,0 +1,9 @@
+name: local-install
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        python -m pip install "$TW_ACTION_PATH/"
+        pip install './' ~/tools/x ${{ github.action_path }}/sub
+        pip install -e . "requests==2.32.3"

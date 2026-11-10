@@ -1,0 +1,1 @@
+- Grep for secrets (common patterns: `sk-`, `AKIA`, `-----BEGIN PRIVATE KEY-----`, `.env` committed).

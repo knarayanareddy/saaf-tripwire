@@ -1,0 +1,5 @@
+services:
+  api:
+    image: app
+    environment:
+      - AWS_SECRET_ACCESS_KEY=g/BTQJntf+Lcts7k/6cwyuECf47ZNOd2TnvkbMyu

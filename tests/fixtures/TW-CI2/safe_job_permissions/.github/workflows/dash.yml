@@ -1,0 +1,15 @@
+on:
+  push:
+    branches: [main]
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: python tools/gen.py "${{ github.sha }}"
+  reuse:
+    uses: ./.github/workflows/local.yml
+  pinned:
+    uses: some-org/shared/.github/workflows/ci.yml@0123456789abcdef0123456789abcdef01234567

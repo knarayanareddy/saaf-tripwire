@@ -1,0 +1,10 @@
+# Copy to .github/workflows/tripwire.yml in any SAAF repo. Replace both SHAs with the same saaf-tripwire release commit.
+name: SAAF Tripwire
+on: [push, pull_request]
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  tripwire:
+    uses: SAAF-Project/saaf-tripwire/.github/workflows/tripwire.yml@1111111111111111111111111111111111111111 # replace with release SHA
+    with: { tripwire-ref: "1111111111111111111111111111111111111111" }  # quoted: a SHA can parse as a number

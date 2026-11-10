@@ -1,0 +1,4 @@
+x-secrets: &secrets
+  api_key: 06d9acb79ecc487c2e0a28fc41c6e379
+prod:
+  <<: *secrets
