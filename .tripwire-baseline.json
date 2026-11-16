@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "note": "Accepted finding, not a real secret. TW-SEC1 flags a synthetic Anthropic-shaped string that tests/test_self_hardening.py used before it generated keys at runtime. The blob lives in history at 8cea2c3 and cannot be removed without rewriting main. Fingerprint-only suppression: remove this entry if history is ever rewritten. See docs/self-audit/FINDINGS-DETAIL.md (TW-A3/A4 tests).",
+  "accepted": [
+    {
+      "fingerprint": "25165b47495a19277bdd2092",
+      "rule": "TW-SEC1",
+      "file": "tests/test_self_hardening.py",
+      "message": "anthropic credential reachable in git history (commit 8cea2c3, tests/test_self_hardening.py); removed from the tree but still cloneable"
+    }
+  ]
+}
