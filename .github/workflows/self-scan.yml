@@ -27,11 +27,16 @@ jobs:
           python -m pytest -q
 
   self-scan:
+    # A called job may not request a permission the caller does not grant; `actions: read` is
+    # required by the SARIF upload on private repositories. Keep this a superset of the called job.
     permissions:
       contents: read
       security-events: write
+      actions: read
     uses: ./.github/workflows/tripwire.yml
     with:
       tripwire-ref: ${{ github.sha }}
+      # The reusable workflow defaults to the upstream repo; a fork must run its own copy.
+      tripwire-repository: ${{ github.repository }}
       fail-on: medium        # the repo is clean at medium; keep it that way
       baseline: .tripwire-baseline.json   # one accepted finding: a fake test key in history (8cea2c3)

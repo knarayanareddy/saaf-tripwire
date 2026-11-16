@@ -8,6 +8,10 @@ on:
         description: Full 40-character commit SHA of saaf-tripwire to run (use the SHA you pinned this workflow to).
         type: string
         required: true
+      tripwire-repository:
+        description: Repository that hosts the guard. Defaults to the upstream project; a fork or mirror passes its own repository.
+        type: string
+        default: SAAF-Project/saaf-tripwire
       fail-on:
         type: string
         default: high
@@ -53,7 +57,7 @@ jobs:
       - name: Check out SAAF Tripwire at the pinned SHA
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          repository: SAAF-Project/saaf-tripwire
+          repository: ${{ inputs.tripwire-repository }}
           ref: ${{ inputs.tripwire-ref }}
           path: .tripwire-src
           persist-credentials: false

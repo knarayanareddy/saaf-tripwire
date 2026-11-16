@@ -4,6 +4,7 @@ on: [push, pull_request]
 permissions:
   contents: read
   security-events: write
+  actions: read        # required by the SARIF upload on private repositories
 jobs:
   tripwire:
     uses: SAAF-Project/saaf-tripwire/.github/workflows/tripwire.yml@1111111111111111111111111111111111111111 # replace with release SHA
