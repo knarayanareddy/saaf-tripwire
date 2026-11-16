@@ -53,8 +53,8 @@ In CI, pass `--config-from <trusted-dir>`: the action uses the base commit, so t
 hide its own findings behind a `.tripwireignore` or a baseline it introduces (`action.yml`, review R-01/R-02).
 
 ## The guard practises what it preaches
-Every action is pinned to a full commit SHA, the workflow has `contents: read` and `security-events: write`
-only, no event data is expanded inside a shell, the guard runs with `python -P`, and the repo passes its own
+Every action is pinned to a full commit SHA, the workflow has `contents: read`, `security-events: write` and
+`actions: read` only, no event data is expanded inside a shell, the guard runs with `python -P`, and the repo passes its own
 scan at `--fail-on medium` (`.github/workflows/self-scan.yml`). The guard has also been run through its own
 methodology; the nine defects that found are in `docs/self-audit/REPORT.md`.
 

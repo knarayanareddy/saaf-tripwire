@@ -75,6 +75,33 @@ def test_reusable_workflow_contract():
     assert all(s["with"].get("persist-credentials") is False for s in checkouts)
 
 
+def _guard_permissions():
+    return _load(ROOT / ".github/workflows/tripwire.yml")["jobs"]["tripwire"]["permissions"]
+
+
+def test_nested_job_permissions_are_granted_by_its_callers():
+    # GitHub rejects the whole run at startup if the called job requests a scope the caller did not
+    # grant ("is requesting 'actions: read', but is only allowed 'actions: none'"). This is the exact
+    # way the self-scan broke after actions: read was added for private-repo SARIF (R-12).
+    guard = _guard_permissions()
+    for name, caller in (("self-scan", _load(ROOT / ".github/workflows/self-scan.yml")["jobs"]["self-scan"]["permissions"]),
+                         ("examples/caller.yml", _load(ROOT / "examples/caller.yml")["permissions"])):
+        missing = {k: v for k, v in guard.items() if caller.get(k) != v}
+        assert not missing, f"{name} does not grant {missing}"
+
+
+def test_self_scan_runs_the_guard_from_its_own_repository():
+    # The reusable workflow defaults to the upstream repo; in a fork that SHA does not exist there.
+    job = _load(ROOT / ".github/workflows/self-scan.yml")["jobs"]["self-scan"]
+    assert job["with"]["tripwire-repository"] == "${{ github.repository }}"
+    guard_job = _load(ROOT / ".github/workflows/tripwire.yml")["jobs"]["tripwire"]
+    src = [s for s in guard_job["steps"] if s.get("with", {}).get("path") == ".tripwire-src"][0]
+    assert src["with"]["repository"] == "${{ inputs.tripwire-repository }}"
+    assert src["with"]["ref"] == "${{ inputs.tripwire-ref }}"
+    inputs = _load(ROOT / ".github/workflows/tripwire.yml")["on"]["workflow_call"]["inputs"]
+    assert inputs["tripwire-repository"]["default"] == "SAAF-Project/saaf-tripwire"
+
+
 def test_action_runs_guard_with_isolated_python():
     d = _load(ROOT / "action.yml")
     scan = [s for s in d["runs"]["steps"] if s.get("id") == "scan"][0]
