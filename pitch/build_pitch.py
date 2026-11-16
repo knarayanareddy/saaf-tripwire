@@ -53,23 +53,23 @@ def load_summary() -> dict | None:
         return None
 
 
-def e(s) -> str:
+def esc(s) -> str:
     return html.escape(str(s), quote=True)
 
 
 def md_code(s: str) -> str:
     """`code` spans in rule text -> <code>."""
-    parts = e(s).split("`")
+    parts = esc(s).split("`")
     return "".join(f"<code>{x}</code>" if i % 2 else x for i, x in enumerate(parts))
 
 
 def rule_rows(rules: list[dict]) -> str:
     rows = []
     for r in rules:
-        sev = e(r.get("severity", ""))
-        seen = "".join(f'<span class="chip">{e(x)}</span>' for x in r.get("seen_in", []))
+        sev = esc(r.get("severity", ""))
+        seen = "".join(f'<span class="chip">{esc(x)}</span>' for x in r.get("seen_in", []))
         rows.append(
-            f'<tr><td class="rid"><span class="mono">{e(r["id"])}</span><span class="sev sev-{sev}">{sev}</span></td>'
+            f'<tr><td class="rid"><span class="mono">{esc(r["id"])}</span><span class="sev sev-{sev}">{sev}</span></td>'
             f'<td><strong>{md_code(r.get("title", ""))}</strong><div class="why">{md_code(r.get("why", ""))}</div></td>'
             f'<td class="seen">{seen or "&ndash;"}</td></tr>')
     return "\n".join(rows)
@@ -91,8 +91,8 @@ def main() -> int:
         "%%RULE_ROWS%%": rule_rows(rules) or '<tr><td colspan="3">Rules are still being built.</td></tr>',
         "%%N_RULES%%": str(len(rules)),
         "%%N_CASES%%": str(cases),
-        "%%RECALL%%": e(recall),
-        "%%RECALL_NOTE%%": e(recall_note),
+        "%%RECALL%%": esc(recall),
+        "%%RECALL_NOTE%%": esc(recall_note),
     }.items():
         page = page.replace(k, v)
     OUT.write_text(page, encoding="utf-8")

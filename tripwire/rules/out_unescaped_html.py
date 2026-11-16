@@ -81,6 +81,24 @@ def _base_ok(node) -> bool:
                                                  or base.id.isupper()))
 
 
+def _iter_raw(node, names, depth=0) -> bool:
+    """True when a `for` target receives unescaped data (unwrap enumerate/sorted/items/...)."""
+    if depth > 5:
+        return False
+    if isinstance(node, ast.Call):
+        fn = w.call_name(node)
+        if fn in ("enumerate", "sorted", "reversed", "list", "tuple", "iter", "set") and node.args:
+            return _iter_raw(node.args[0], names, depth + 1)
+        if fn == "zip":
+            return any(_iter_raw(a, names, depth + 1) for a in node.args)
+        if isinstance(node.func, ast.Attribute) and node.func.attr in ("items", "values", "keys"):
+            return _raw(node.func.value, names, depth + 1)
+        return _raw(node, names, depth + 1)
+    if isinstance(node, (ast.Tuple, ast.List)):
+        return any(_iter_raw(e, names, depth + 1) for e in node.elts)
+    return _raw(node, names, depth + 1)
+
+
 def _scope_names(fn) -> dict:
     names = {}
     if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
@@ -90,9 +108,10 @@ def _scope_names(fn) -> dict:
                    key=lambda n: n.lineno if hasattr(n, "lineno") else n.target.lineno)
     for n in nodes:
         if isinstance(n, (ast.For, ast.comprehension)):
+            raw_iter = _iter_raw(n.iter, names)
             for t in ast.walk(n.target):
                 if isinstance(t, ast.Name):
-                    names[t.id] = True
+                    names[t.id] = raw_iter
         elif n.value is not None:
             for t in (n.targets if isinstance(n, ast.Assign) else [n.target]):
                 if isinstance(t, ast.Name):

@@ -14,7 +14,7 @@ inputs:
     description: Also scan full git history for secrets (needs actions/checkout with fetch-depth 0).
     default: "true"
   baseline:
-    description: Optional baseline file (relative to path) of accepted findings, for gradual adoption.
+    description: Optional baseline file (relative to path) of accepted findings, for gradual adoption. On a pull request it must already exist on the base branch; a change may not introduce its own baseline.
     default: ""
   upload-sarif:
     description: Upload results to GitHub code scanning (needs security-events write).
@@ -37,14 +37,22 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Install SAAF Tripwire from the action's own pinned source
+    - name: Stage SAAF Tripwire and install its one pinned dependency
       shell: bash
       env:
         TW_ACTION_PATH: ${{ github.action_path }}
+      # Copy the package instead of `pip install`: a PEP 517 build fetches an unpinned
+      # `setuptools>=68` from the index at run time (self-audit TW-A7). The package has no dependencies.
       run: |
         set -euo pipefail
         python -m venv "$RUNNER_TEMP/tripwire-venv"
-        "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m pip install --quiet --disable-pip-version-check --no-deps "$TW_ACTION_PATH/"
+        lib="$RUNNER_TEMP/tripwire-lib"
+        rm -rf "$lib"; mkdir -p "$lib"
+        cp -R "$TW_ACTION_PATH/tripwire" "$lib/"
+        # The engine's only third-party import is PyYAML (workflow parsing). Pin it explicitly:
+        # `pip install .` with --no-deps shipped without it and crashed on a clean runner (TW-A8).
+        "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m pip install --quiet --disable-pip-version-check \
+          --no-deps "PyYAML==6.0.2"
 
     - name: Scan
       id: scan
@@ -54,13 +62,25 @@ runs:
         TW_FAIL_ON: ${{ inputs.fail-on }}
         TW_HISTORY: ${{ inputs.history }}
         TW_BASELINE: ${{ inputs.baseline }}
+        TW_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        TW_ACTION_PATH: ${{ github.action_path }}
+        PYTHONPATH: ${{ runner.temp }}/tripwire-lib
       # python -P: the scanned repo is the working directory; -P keeps it off sys.path so a planted
       # tripwire/ package in that repo can never replace the guard (SAAF finding SA-41).
+      #
+      # Control-plane config (.tripwireignore, the baseline) is taken from the BASE commit on a pull
+      # request, so the change under test cannot silence the findings it introduces (review R-01/R-02).
       run: |
         set -uo pipefail
-        args=(scan "$TW_PATH" --fail-on "$TW_FAIL_ON" --sarif-out "$RUNNER_TEMP/tripwire.sarif")
+        config="$RUNNER_TEMP/tw-config"
+        if ! bash "$TW_ACTION_PATH/scripts/ci-config.sh" "$TW_PATH" "${TW_BASE_SHA:-}" "$TW_BASELINE" "$config"; then
+          echo "::error::refusing to run: control-plane config (.tripwireignore/baseline) could not be taken from the base commit"
+          echo "exit-code=2" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        args=(scan "$TW_PATH" --fail-on "$TW_FAIL_ON" --config-from "$config" --sarif-out "$RUNNER_TEMP/tripwire.sarif")
         if [ "$TW_HISTORY" != "true" ]; then args+=(--no-history); fi
-        if [ -n "$TW_BASELINE" ]; then args+=(--baseline "$TW_PATH/$TW_BASELINE"); fi
+        if [ -n "$TW_BASELINE" ]; then args+=(--baseline "baseline.json"); fi
         "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m tripwire "${args[@]}"
         code=$?
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
@@ -79,6 +99,7 @@ runs:
       shell: bash
       env:
         TW_PATH: ${{ inputs.path }}
+        PYTHONPATH: ${{ runner.temp }}/tripwire-lib
       run: |
         set -euo pipefail
         "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m pip install --quiet --disable-pip-version-check "pip-audit==2.10.1"

@@ -28,11 +28,12 @@ jobs:
     name: SAAF Tripwire
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Least privilege: read the code, write code-scanning alerts. Nothing else.
-    # (Private repos also need `actions: read` for the SARIF upload.)
+    # Least privilege: read the code and the workflow run, write code-scanning alerts. Nothing else.
+    # `actions: read` is required for the SARIF upload on private repositories (38 of the 51 SAAF repos).
     permissions:
       contents: read
       security-events: write
+      actions: read
     steps:
       - name: Refuse a mutable guard reference
         env:

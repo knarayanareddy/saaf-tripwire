@@ -4,6 +4,8 @@ import ast, re
 from functools import lru_cache
 from pathlib import Path
 
+from .safeio import is_safe_file, read_text as _read_text
+
 PY = {".py"}
 JS = {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"}
 HTML = {".html", ".htm", ".jinja", ".jinja2", ".j2"}
@@ -33,8 +35,12 @@ def files(ctx, exts=None, names=None):
         if is_test_path(r):
             continue
         if (exts and p.suffix.lower() in exts) or (names and (p.name in names or any(p.name.startswith(n) for n in names))):
+            # Refuse symlinks, devices, out-of-root paths and oversized files: the scanned repo is
+            # untrusted input (R-09). The 1.5 MB cap is stricter than safeio.MAX_BYTES for code files.
+            if not is_safe_file(p, ctx.root):
+                continue
             try:
-                if p.stat().st_size > 1_500_000:
+                if p.lstat().st_size > 1_500_000:
                     continue
             except OSError:
                 continue
@@ -44,10 +50,7 @@ def files(ctx, exts=None, names=None):
 
 @lru_cache(maxsize=4096)
 def read(p: Path) -> str:
-    try:
-        return p.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return ""
+    return _read_text(p, 1_500_000)
 
 
 @lru_cache(maxsize=4096)

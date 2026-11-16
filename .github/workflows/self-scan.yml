@@ -33,3 +33,4 @@ jobs:
     uses: ./.github/workflows/tripwire.yml
     with:
       tripwire-ref: ${{ github.sha }}
+      fail-on: medium        # the repo is clean at medium; keep it that way

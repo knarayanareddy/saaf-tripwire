@@ -82,7 +82,23 @@ def check(ctx: Context) -> list[Finding]:
         for st in wf.steps():
             if "github-script" in str(st.data.get("uses", "")):
                 continue  # script: is JavaScript, not a shell install
+            # Join shell line continuations and drop comments: a comment mentioning `pip install`
+            # and a `pip install ... \` continuation are not installs (self-audit TW-A9).
+            logical: list[tuple[int, str]] = []
+            buf, start = "", 0
             for ln, text in st.run_lines():
+                if not buf:
+                    start = ln
+                if text.rstrip().endswith("\\"):
+                    buf += text.rstrip()[:-1] + " "
+                    continue
+                logical.append((start, buf + text))
+                buf = ""
+            if buf:
+                logical.append((start, buf))
+            for ln, text in logical:
+                if text.lstrip().startswith("#"):
+                    continue
                 m = re.search(r"\bpip3?\s+install\s+(.+)$", text)
                 if not m:
                     continue

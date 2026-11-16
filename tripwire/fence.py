@@ -112,11 +112,13 @@ def normalise_for_match(text: str) -> str:
     return text.strip(" \"'")
 
 
-def check_quotes(quotes, source_text: str, min_chars: int = 1) -> list:
+def check_quotes(quotes, source_text: str, min_chars: int = 12) -> list:
     """Return the quotes that do NOT occur verbatim in `source_text` (after normalisation).
 
-    Empty / whitespace-only quotes count as failures: a "found: yes" with nothing quoted is
-    not evidence. An empty return list means every quote is grounded.
+    A quote must be at least `min_chars` normalised characters: one-character and stop-word
+    "quotes" ("a", "the") occur in almost any document, so accepting them would let a fabricated
+    verdict satisfy the control without quoting any evidence. Empty and whitespace-only quotes fail.
+    An empty return list means every quote is grounded.
     """
     if isinstance(quotes, str):
         quotes = [quotes]

@@ -46,10 +46,17 @@ python -P -m tripwire rules
 Exit 0 = clean, 1 = findings at or above `--fail-on`, 2 = guard error (it fails closed). `-P` stops the scanned
 repo from shadowing the guard. Secrets are always masked after 4 characters.
 
+The history scan refuses to run on a **shallow clone** (exit 2) rather than report a false clean: in CI set
+`fetch-depth: 0` on `actions/checkout`, or scan without history locally with `--no-history`.
+
+In CI, pass `--config-from <trusted-dir>`: the action uses the base commit, so the change under test cannot
+hide its own findings behind a `.tripwireignore` or a baseline it introduces (`action.yml`, review R-01/R-02).
+
 ## The guard practises what it preaches
 Every action is pinned to a full commit SHA, the workflow has `contents: read` and `security-events: write`
 only, no event data is expanded inside a shell, the guard runs with `python -P`, and the repo passes its own
-scan at `--fail-on high` (`.github/workflows/self-scan.yml`).
+scan at `--fail-on medium` (`.github/workflows/self-scan.yml`). The guard has also been run through its own
+methodology; the nine defects that found are in `docs/self-audit/REPORT.md`.
 
 ## Evidence: Tripwire run across the 50 audited repos
 Filled by `scripts/evidence.py`. A confirmed finding is *in scope* of a rule when the rule names it; it is

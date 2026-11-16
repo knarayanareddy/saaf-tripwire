@@ -19,7 +19,10 @@ for rule, cases in CASES.items():
                 p.write_bytes(content[1].encode("utf-16"))
             else:
                 p.write_text(content)
-        found = [f for f in engine.run(d, history=False, only={rule}) if f.rule == rule]
+        case_files = [p for p in d.rglob("*") if p.is_file() and p.name != "README"]
+        if not case_files:
+            raise SystemExit(f"redteam: {rule}/{name} produced no files")
+        found = [f for f in engine.run(d, history=False, only={rule}, files=case_files) if f.rule == rule]
         blocking = [f for f in found if f.severity in ("critical", "high", "medium")] if rule == "TW-SEC1" else found
         fired = bool(blocking) if rule != "TW-SEC1" else any(f.severity in ("critical", "high") for f in found)
         if kind == "evades":

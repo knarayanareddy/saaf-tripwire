@@ -106,3 +106,17 @@ def test_check_quotes_accepts_single_string_and_mixed_list():
 def test_forged_quote_in_fenced_doc_is_still_verbatim_check_only():
     # check against the raw source the auditor supplied, not the prompt
     assert check_quotes(["approved by auditor"], SOURCE) == ["approved by auditor"]
+
+
+@pytest.mark.parametrize("quote", ["a", "the", "it", "IT", "-"])
+def test_trivial_quotes_are_rejected(quote):
+    # A one-character or stop-word "quote" is present in almost any document; it is not evidence.
+    assert check_quotes([quote], SOURCE) == [quote]
+
+
+def test_quote_floor_can_be_lowered_explicitly():
+    assert check_quotes(["a"], SOURCE, min_chars=1) == []
+
+
+def test_a_real_short_quote_above_the_floor_still_passes():
+    assert check_quotes(["BitLocker before issue"], SOURCE) == []
