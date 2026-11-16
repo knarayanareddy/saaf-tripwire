@@ -44,7 +44,7 @@ Fixing one repo doesn't stop the next one repeating the mistake. A guard that ev
 - **Deterministic and offline.** It makes no AI calls, so the same code always gets the same answer, in a few seconds per repo.
 - **Reads the full git history**, so a key deleted last month still gets caught.
 - **Never prints a secret.** Values are masked after 4 characters.
-- **Tested both ways.** Each rule has examples that must trigger it and safe examples that must not. 247 tests in total.
+- **Tested both ways.** Each rule has examples that must trigger it and safe examples that must not. 287 tests in total.
 - **Attacked on purpose.** A red-team agent wrote code designed to slip past each rule. Every trick it found became a new test, until it stopped getting through.
 
 ### 1. The CI check: blocks the bad change
@@ -88,7 +88,7 @@ Some weaknesses only show up when an agent runs. The skill covers those:
   - **Before:** the note reaches the AI as an instruction, a made-up quote is accepted, and the report says PASS.
   - **After:** the note stays inside the data tag, `check_quotes` rejects the quote, and the result fails safe.
 - **On the real repos:** Tripwire flags the same file for **32 of the 65** confirmed weaknesses in the register, including 22 of the 40 live-tested ones.
-- **247 tests pass**, and Tripwire passes its own scan.
+- **287 tests pass**, and Tripwire passes its own scan at `--fail-on medium`.
 
 ## What it does not do
 - It doesn't replace an audit. Static rules can't see everything: business logic, live AI behaviour and how the app is deployed still need a person or an agent. That is what the skill's method is for.

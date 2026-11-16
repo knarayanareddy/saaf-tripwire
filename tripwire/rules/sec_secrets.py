@@ -12,6 +12,7 @@ from __future__ import annotations
 import base64, binascii, collections, hashlib, math, re, subprocess
 from ..model import Context, Finding
 from ..util.gha import files_of, rel
+from ..util.gitcmd import run_git
 
 RULE = {
     "id": "TW-SEC1",
@@ -207,13 +208,25 @@ def check(ctx: Context) -> list[Finding]:
 
 
 def _history(ctx: Context, seen: set[str]) -> list[Finding]:
+    # Fail closed: a history scan that could not run must never look like "no secrets in history".
+    # A shallow clone, a git timeout or a git error raises, and the engine turns that into exit 2.
     try:
-        out = subprocess.run(
-            ["git", "-C", str(ctx.root), "log", "--all", "-p", "-U0", "--no-color", "--no-ext-diff",
-             "--no-renames", "--format=%x00commit %H"],
-            capture_output=True, text=True, errors="replace", timeout=60).stdout
-    except Exception:
-        return []
+        shallow = run_git(ctx.root, ["rev-parse", "--is-shallow-repository"], timeout=10)
+    except Exception as exc:
+        raise RuntimeError(f"git history scan could not start ({type(exc).__name__}); refusing to report clean") from exc
+    if shallow.returncode == 0 and shallow.stdout.strip() == "true":
+        raise RuntimeError("history scan requested but the repository is a shallow clone; "
+                           "check out with fetch-depth: 0 (or pass --no-history)")
+    try:
+        r = run_git(ctx.root, ["log", "--all", "-p", "-U0", "--no-color", "--no-ext-diff", "--no-textconv",
+                               "--no-renames", "--format=%x00commit %H"], timeout=60)
+    except Exception as exc:
+        raise RuntimeError(f"git history scan failed ({type(exc).__name__}); refusing to report clean") from exc
+    if r.returncode != 0:
+        if "does not have any commits" in (r.stderr or ""):
+            return []
+        raise RuntimeError(f"git history scan failed: {(r.stderr or '').strip()[:200]}")
+    out = r.stdout
     found: dict[str, Finding] = {}
     commit, path = "", ""
     lines = out.splitlines()

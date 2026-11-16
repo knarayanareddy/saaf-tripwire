@@ -7,9 +7,9 @@ name = "saaf-tripwire"
 dynamic = ["version"]
 description = "SAAF Tripwire: one deterministic security guard built from a probe-backed audit of 50 SAAF repos."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "MIT" }
-dependencies = []
+dependencies = ["PyYAML>=6"]
 
 [project.optional-dependencies]
 test = ["pytest>=7", "pyyaml>=6"]

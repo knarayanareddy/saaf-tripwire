@@ -49,8 +49,13 @@ def test_no_expressions_in_run_steps():
     # Untrusted event data reaches shells only through env vars, never ${{ }} inside run:.
     for p in FILES:
         for s in _steps(_load(p)):
-            assert "${{" not in s.get("run", ""), f"{p.name}: expression in run step {s.get('name')}"
-        assert "github.event." not in p.read_text().replace("# ", ""), p.name
+            run = s.get("run", "")
+            assert "${{" not in run, f"{p.name}: expression in run step {s.get('name')}"
+            assert "github.event." not in run, f"{p.name}: event data in run step {s.get('name')}"
+        for s in _steps(_load(p)):
+            for value in (s.get("env") or {}).values():
+                if isinstance(value, str) and "github.event." in value:
+                    assert value.strip().startswith("${{") and value.strip().endswith("}}"), p.name
 
 
 def test_no_pull_request_target():
@@ -63,7 +68,7 @@ def test_reusable_workflow_contract():
     assert "workflow_call" in d["on"]
     assert d["permissions"] == {}
     job = d["jobs"]["tripwire"]
-    assert job["permissions"] == {"contents": "read", "security-events": "write"}
+    assert job["permissions"] == {"contents": "read", "security-events": "write", "actions": "read"}
     checkouts = [s for s in job["steps"] if s.get("uses", "").startswith("actions/checkout@")]
     target = [s for s in checkouts if s["with"].get("path") == "target"][0]
     assert target["with"]["fetch-depth"] == 0
@@ -75,6 +80,22 @@ def test_action_runs_guard_with_isolated_python():
     scan = [s for s in d["runs"]["steps"] if s.get("id") == "scan"][0]
     assert "-P -m tripwire" in scan["run"]
     assert any("upload-sarif@" in s.get("uses", "") for s in d["runs"]["steps"])
+
+
+def test_action_stages_the_guard_and_pins_its_dependency():
+    # Copying the package avoids a PEP 517 build (which fetched an unpinned setuptools, TW-A7);
+    # the only runtime dependency must be installed explicitly and version-pinned (TW-A8).
+    d = _load(ROOT / "action.yml")
+    steps = d["runs"]["steps"]
+    install = [s for s in steps if "Stage SAAF Tripwire" in s.get("name", "")][0]
+    run = install["run"]
+    assert "cp -R" in run
+    assert '"$TW_ACTION_PATH/"' not in run          # no build of the guard from source
+    assert 'PyYAML==6.0.2' in run and "--no-deps" in run
+    scan = [s for s in steps if s.get("id") == "scan"][0]
+    assert scan["env"]["PYTHONPATH"].endswith("tripwire-lib")
+    pyproject = (ROOT / "pyproject.toml").read_text()
+    assert "PyYAML>=6" in pyproject                 # the import is a declared dependency
 
 
 def test_caller_is_short_and_pinned():

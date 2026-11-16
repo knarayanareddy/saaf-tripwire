@@ -48,6 +48,22 @@ def sort_findings(findings: list[Finding]) -> list[Finding]:
     return sorted(findings, key=lambda f: (SEV_RANK.get(f.severity, 9), f.rule, f.file, f.line))
 
 
+_CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def _safe(text) -> str:
+    """Make untrusted text safe for a line-oriented log or a SARIF message.
+
+    A tracked filename or a source line is attacker-controlled. A newline in it would let a scanned
+    repo start a new log line with a CI workflow command (``::error::``/``::stop-commands::``);
+    ANSI escapes would let it rewrite the terminal. Collapse whitespace and drop C0 controls.
+    JSON output keeps the raw value (encoded as data) so paths stay usable programmatically.
+    """
+    s = str(text if text is not None else "")
+    s = s.replace("\r\n", " ").replace("\n", " ").replace("\r", " ").replace("\t", " ")
+    return _CONTROL.sub("", s)
+
+
 def _counts(findings: list[Finding]) -> dict:
     c = {s: 0 for s in SEVERITIES}
     for f in findings:
@@ -60,11 +76,11 @@ def to_text(findings: list[Finding], meta: dict) -> str:
     out = []
     for f in sort_findings(findings):
         loc = f"{f.file}:{f.line}" if f.file and f.line else (f.file or "(repository)")
-        out.append(f"{f.severity.upper():8} {f.rule:10} {loc}")
-        out.append(f"         {f.message}")
+        out.append(f"{f.severity.upper():8} {_safe(f.rule):10} {_safe(loc)}")
+        out.append(f"         {_safe(f.message)}")
         if f.evidence:
-            out.append(f"         evidence: {mask(f.evidence)}")
-        out.append(f"         fix: {f.fix}")
+            out.append(f"         evidence: {_safe(mask(f.evidence))}")
+        out.append(f"         fix: {_safe(f.fix)}")
     c = _counts(findings)
     summary = ", ".join(f"{c[s]} {s}" for s in SEVERITIES if c[s])
     out.append("")
@@ -74,11 +90,11 @@ def to_text(findings: list[Finding], meta: dict) -> str:
     if meta.get("baselined"):
         out.append(f"Suppressed by baseline: {meta['baselined']}.")
     if meta.get("ignored"):
-        out.append(f"Suppressed by .tripwireignore: {meta['ignored']} (patterns: {', '.join(meta.get('ignore_patterns', []))}).")
+        out.append(f"Suppressed by .tripwireignore: {meta['ignored']} (patterns: {_safe(', '.join(meta.get('ignore_patterns', [])))}).")
     for p in meta.get("refused_patterns", []):
-        out.append(f"Refused ignore pattern {p!r}: it would hide every finding.")
+        out.append(f"Refused ignore pattern {_safe(p)!r}: it would hide every finding.")
     for e in meta.get("errors", []):
-        out.append(f"RULE ERROR {e['rule']}: {e['error']}  (scan fails closed)")
+        out.append(f"RULE ERROR {_safe(e['rule'])}: {_safe(e['error'])}  (scan fails closed)")
     if not meta.get("history", True):
         out.append("Git history was not scanned (--no-history).")
     return "\n".join(out)
@@ -118,7 +134,7 @@ def _rule_descriptor(rule: dict) -> dict:
 
 
 def _location(f: Finding, root: Path | None) -> dict:
-    uri = f.file.replace("\\", "/").lstrip("/") if f.file else ""
+    uri = _safe(f.file.replace("\\", "/").lstrip("/")) if f.file else ""
     if not uri:
         # Repo-level finding: GitHub needs a file to hang the alert on. Use the README (or the root marker).
         uri = "README.md" if root is not None and (root / "README.md").exists() else ".github"
@@ -135,9 +151,9 @@ def to_sarif(findings: list[Finding], rules: list[dict], meta: dict, root: Path 
     index = {rid: i for i, rid in enumerate(ids)}
     results = []
     for f in sort_findings(findings):
-        text = f.message.rstrip(".") + ". Fix: " + f.fix
+        text = _safe(f.message.rstrip(".") + ". Fix: " + f.fix)
         if f.evidence:
-            text += f" Evidence: {mask(f.evidence)}"
+            text += _safe(f" Evidence: {mask(f.evidence)}")
         results.append({
             "ruleId": f.rule, "ruleIndex": index[f.rule], "level": SARIF_LEVEL.get(f.severity, "warning"),
             "message": {"text": text},

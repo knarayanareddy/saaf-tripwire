@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 from ..model import Context
+from .safeio import is_safe_file, read_text as _read_text
 
 TEST_PATH = re.compile(r"(^|/)(tests?|testing|fixtures|examples?|docs)/|(^|/)test_[^/]*\.py$|_test\.py$|conftest\.py$")
 LLM_IMPORT = re.compile(r"^\s*(?:import\s+(?:[\w.]+\s*,\s*)*|from\s+)(anthropic|openai|langchain\w*|litellm|google\.generativeai|google\.genai|ollama|mistralai|cohere|claude_agent_sdk|claude_code_sdk)\b", re.M)
@@ -14,7 +15,7 @@ LLM_IMPORT = re.compile(r"^\s*(?:import\s+(?:[\w.]+\s*,\s*)*|from\s+)(anthropic|
 def py_files(ctx: Context, include_tests: bool = False):
     """Yield (relpath, source, tree) for every parseable tracked .py file."""
     for p in ctx.files or [q for q in Path(ctx.root).rglob("*.py")]:
-        if p.suffix != ".py" or not p.is_file():
+        if p.suffix != ".py" or not is_safe_file(p, ctx.root):
             continue
         rel = p.relative_to(ctx.root).as_posix()
         if not include_tests and TEST_PATH.search(rel):
@@ -22,8 +23,8 @@ def py_files(ctx: Context, include_tests: bool = False):
         if any(part in {".venv", "venv", "node_modules", "site-packages", "__pycache__"} for part in p.parts):
             continue
         try:
-            src = p.read_text(encoding="utf-8", errors="replace")
-            if len(src) > 2_000_000:
+            src = _read_text(p, 2_000_000)
+            if not src or len(src) > 2_000_000:
                 continue
             tree = ast.parse(src)
         except (SyntaxError, ValueError, OSError):

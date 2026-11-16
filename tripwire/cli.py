@@ -23,8 +23,14 @@ def _rule_meta(mods) -> list[dict]:
     return [dict(m.RULE) for m in mods]
 
 
-def _load_ignore(root: Path, name: str) -> tuple[list[str], list[str]]:
-    p = root / name
+def _resolve_config(config_root: Path, name: str) -> Path:
+    """Resolve an ignore/baseline name against the trusted config root (absolute names win)."""
+    p = Path(name)
+    return p if p.is_absolute() else config_root / p
+
+
+def _load_ignore(config_root: Path, name: str) -> tuple[list[str], list[str]]:
+    p = _resolve_config(config_root, name)
     if not name or not p.is_file():
         return [], []
     keep, refused = [], []
@@ -46,17 +52,31 @@ def _ignored(file: str, patterns: list[str]) -> bool:
     return False
 
 
-def _load_baseline(path: str | None) -> set[str]:
+def _load_baseline(path: str | None, config_root: Path) -> set[str]:
     if not path:
         return set()
-    data = json.loads(Path(path).read_text())
+    p = _resolve_config(config_root, path)
+    try:
+        data = json.loads(p.read_text())
+    except OSError as exc:
+        # A baseline named by the caller but absent from the trusted config root is a control-plane
+        # change, not "no baseline": fail closed instead of silently accepting the findings.
+        raise ValueError(f"baseline not found in trusted config: {p}") from exc
+    except ValueError as exc:
+        raise ValueError(f"baseline is not valid JSON: {p}") from exc
     items = data.get("accepted", data) if isinstance(data, dict) else data
     return {i["fingerprint"] if isinstance(i, dict) else str(i) for i in items}
 
 
 def scan(root: Path, history: bool = True, only: set[str] | None = None,
-         ignore_file: str = ".tripwireignore", baseline: str | None = None):
-    """Run every rule in isolation. Returns (findings, meta)."""
+         ignore_file: str = ".tripwireignore", baseline: str | None = None,
+         config_from: str | None = None):
+    """Run every rule in isolation. Returns (findings, meta, rules).
+
+    ``config_from`` is the trusted directory for ``ignore_file`` and ``baseline``. It defaults to the
+    scanned root for local use; CI should pass the base commit's directory so the change under test
+    cannot suppress its own findings.
+    """
     t0 = time.time()
     mods = engine.load_rules()
     ctx = Context(root=root.resolve(), history=history)
@@ -70,19 +90,27 @@ def scan(root: Path, history: bool = True, only: set[str] | None = None,
             found.extend(mod.check(ctx) or [])
         except Exception as exc:  # fail closed, but keep the other rules' findings
             errors.append({"rule": mod.RULE["id"], "error": f"{type(exc).__name__}: {exc}"[:300]})
-    patterns, refused = _load_ignore(ctx.root, ignore_file)
-    accepted = _load_baseline(baseline)
-    kept, n_ign, n_base = [], 0, 0
+    # Ignore/baseline are *control-plane* inputs. Resolve them against `config_from` when the
+    # caller can point at a trusted copy (the CI action uses the base commit), so a pull request
+    # cannot silence the findings it introduces (review R-01/R-02).
+    config_root = Path(config_from).resolve() if config_from else ctx.root
+    patterns, refused = _load_ignore(config_root, ignore_file)
+    accepted = _load_baseline(baseline, config_root)
+    kept, n_ign, n_base, suppressed = [], 0, 0, []
     for f in found:
         if _ignored(f.file, patterns):
             n_ign += 1
+            suppressed.append({"rule": f.rule, "file": f.file, "line": f.line, "reason": "ignore"})
         elif report.fingerprint(f) in accepted:
             n_base += 1
+            suppressed.append({"rule": f.rule, "file": f.file, "line": f.line, "reason": "baseline"})
         else:
             kept.append(f)
     meta = {"root": str(ctx.root), "history": history, "rules_run": ran, "files": len(ctx.files),
             "seconds": round(time.time() - t0, 2), "ignored": n_ign, "ignore_patterns": patterns,
-            "refused_patterns": refused, "baselined": n_base, "errors": errors}
+            "refused_patterns": refused, "baselined": n_base, "errors": errors,
+            "config_from": str(config_root), "trusted_config": bool(config_from),
+            "suppressed": suppressed[:200]}
     return kept, meta, _rule_meta(mods)
 
 
@@ -106,7 +134,8 @@ def cmd_scan(a) -> int:
         return 2
     try:
         findings, meta, rules = scan(root, history=not a.no_history, only=only,
-                                     ignore_file=a.ignore_file, baseline=a.baseline)
+                                     ignore_file=a.ignore_file, baseline=a.baseline,
+                                     config_from=a.config_from)
     except (OSError, ValueError, KeyError) as exc:
         print(f"tripwire: {exc}", file=sys.stderr)
         return 2
@@ -155,6 +184,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--fail-on", choices=FAIL_LEVELS, default="high", help="exit 1 if any finding is at or above this")
     s.add_argument("--only", help="comma-separated rule ids, e.g. TW-NET1,TW-SEC1")
     s.add_argument("--baseline", help="JSON of accepted findings to suppress (gradual adoption)")
+    s.add_argument("--config-from", metavar="DIR",
+                   help="Trusted directory for .tripwireignore and --baseline. Point this at the base "
+                        "commit in CI so a pull request cannot silence its own findings.")
     s.add_argument("--write-baseline", metavar="FILE", help="write current findings as a baseline file")
     s.add_argument("--ignore-file", default=".tripwireignore", help="path globs to skip, relative to the scanned root")
     s.add_argument("--output", "-o", help="write the report to FILE instead of stdout")
