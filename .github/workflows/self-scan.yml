@@ -34,3 +34,4 @@ jobs:
     with:
       tripwire-ref: ${{ github.sha }}
       fail-on: medium        # the repo is clean at medium; keep it that way
+      baseline: .tripwire-baseline.json   # one accepted finding: a fake test key in history (8cea2c3)

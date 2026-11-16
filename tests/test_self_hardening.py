@@ -2,6 +2,8 @@
 not execute its config, a failed history scan must fail closed, and untrusted text must not forge a
 CI workflow command."""
 import os
+import random
+import string
 import subprocess
 
 from tripwire import cli, report
@@ -9,7 +11,9 @@ from tripwire.model import Finding
 
 GIT = ["git", "-c", "user.email=a@b", "-c", "user.name=t", "-c", "init.defaultBranch=main"]
 REAL_GIT = subprocess.run(["sh", "-c", "command -v git"], capture_output=True, text=True).stdout.strip() or "git"
-KEY = "sk-ant-" + "Z9x8C7v6B5n4M3l2K1j0QwErTyUiOpAsDf"   # 40 chars after the prefix
+# Generated, never committed as a literal: a fixed fake key is itself a finding when the repo is
+# scanned (the guard's own rule cannot tell a test key from a leaked one, by design).
+KEY = "sk-ant-" + "".join(random.choices(string.ascii_letters + string.digits, k=40))
 
 
 def _git(repo, *args):
