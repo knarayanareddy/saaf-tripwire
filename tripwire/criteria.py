@@ -97,7 +97,9 @@ def _run_rule(root: Path, rule_id: str, *, history: bool, baseline: str | None,
     if findings:
         first = report.sort_findings(findings)[0]
         return "fail", f"{len(findings)} finding(s); first at {_safe(first.file)}:{first.line}"
-    return "pass", "0 findings"
+    if len(findings) == 0:                      # only a positive read may pass ...
+        return "pass", "0 findings"
+    return "error", "unclassified rule result"  # ... anything else blocks (TW-GATE1's own advice)
 
 
 def _run_process(argv: list[str], root: Path, timeout: int = 900):
