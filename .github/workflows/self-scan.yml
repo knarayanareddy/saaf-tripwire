@@ -40,5 +40,26 @@ jobs:
       tripwire-repository: ${{ github.repository }}
       fail-on: medium        # the repo is clean at medium; keep it that way
       baseline: .tripwire-baseline.json   # one accepted finding: a fake test key in history (8cea2c3)
-      criteria: .tripwire/criteria.yml     # per-criterion pass/fail, emitted as a verdict artifact
+      criteria: .tripwire/criteria.yml     # per-criterion pass/fail, published as a verdict artifact
       criteria-exec: true                  # validates the audit artifacts (same code the tests job runs)
+
+  sign:
+    # Signing needs id-token/attestations. A *called* job may only request a permission its caller
+    # grants, so requiring it inside the reusable workflow would break every existing consumer with
+    # a zero-job startup failure. This job is this repo's reference for how to sign in your own repo;
+    # private repos additionally need Enterprise Cloud for artifact attestations.
+    needs: self-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write       # OIDC token the attestation is issued against
+      attestations: write   # publish the attestation to this repository
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: saaf-tripwire-verdict
+          path: verdict
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
+        with:
+          subject-path: verdict/tripwire-verdict.json

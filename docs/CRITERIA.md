@@ -60,13 +60,54 @@ Exit codes match `scan`: **0** all pass, **1** any fail, **2** guard error (bad 
 check that could not run, execution refused). No timestamp is included, so the same commit and manifest
 produce the same file.
 
-## Sign-off recipe (not built in)
+## Sign-off: what is built, and what only you can do
 
-1. Run the criteria command in CI and keep `verdict.json` as an artifact.
-2. Attest it (`actions/attest-build-provenance`, or cosign) so the verdict is bound to the commit and run.
-3. Make the job a required status check and require a CODEOWNERS approval on the same change.
+The runner produces evidence; the platform enforces approval. Three layers, in that order:
 
-That gives a signed, auditable pass. The runner produces the evidence; the platform enforces the approval.
+**1. Keep the verdict (built).** The action exposes the verdict's path as the `verdict` output, and the
+reusable workflow always uploads it as the `saaf-tripwire-verdict` artifact (30-day retention). The step
+runs `if: always()`, so a **failing** verdict is retained too — the artifact is evidence of a fail, not a
+trophy for a pass. The criteria step inside the action never fails the job by itself: the final `Gate` step
+does, after the verdict file exists, so there is no path where a "no" returns before the evidence is kept.
+
+```yaml
+- uses: actions/download-artifact@<sha> # v8
+  with: {name: saaf-tripwire-verdict, path: verdict}
+```
+
+**2. Attest it (built here, opt-in for you).** `.github/workflows/self-scan.yml` has a `sign` job that
+attests the downloaded verdict with `actions/attest-build-provenance`, binding it to this commit and this
+workflow run:
+
+```bash
+gh attestation verify verdict/tripwire-verdict.json -R <owner>/<repo>
+```
+
+It is a **separate caller-side job**, not a step inside the reusable workflow, for a hard reason:
+attesting needs `id-token: write` and `attestations: write`, and GitHub rejects the entire run at startup
+if a called job requests a scope its caller did not grant. Putting it in the shared workflow would break
+every consumer that has not updated its permissions in the same release. Copy the `sign` job into your own
+workflow and grant those two scopes there.
+
+Two constraints worth knowing before you adopt it:
+
+- **Private repos need Enterprise Cloud** for artifact attestations. On Team/Free the attestation step
+  fails; keep the artifact and skip signing there.
+- **Signing is not a scan.** It proves *this verdict came from this commit in this run*. It does not prove
+  the verdict was pass, or that the manifest was honest — a caller can set `criteria-exec: false` and
+  still get a signed verdict full of `error` entries.
+
+**3. Require it (not applied — a repo setting).** Make the checks required on `main` and require a
+CODEOWNERS review on the manifest and workflow. Expected check names from this repository's setup:
+
+- `tests`
+- `self-scan / SAAF Tripwire`
+- `sign` (only if you attest)
+
+This has **not** been applied, and cannot be from inside the repository: the automation token used here
+gets `403 Resource not accessible by integration` on the branch-protection API. A repository admin must
+enable it under *Settings → Branches → Protect `main` → Require status checks to pass*. Record which
+checks you actually required; a doc that claims enforcement it does not have is worse than no doc.
 
 ## Limits
 
