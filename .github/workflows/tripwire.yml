@@ -71,6 +71,7 @@ jobs:
           persist-credentials: false
 
       - name: Run SAAF Tripwire
+        id: tripwire
         uses: ./.tripwire-src
         with:
           path: target
@@ -80,3 +81,14 @@ jobs:
           criteria: ${{ inputs.criteria }}
           criteria-exec: ${{ inputs.criteria-exec }}
           audit-dependencies: ${{ inputs.audit-dependencies }}
+
+      - name: Upload the criteria verdict
+        # A verdict that only exists in a log line is not evidence. Publish the JSON so a signer,
+        # an auditor, or a downstream reviewer can read the same file the gate acted on.
+        if: always() && steps.tripwire.outputs.verdict != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: saaf-tripwire-verdict
+          path: ${{ steps.tripwire.outputs.verdict }}
+          if-no-files-found: error
+          retention-days: 30

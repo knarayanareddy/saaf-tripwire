@@ -111,6 +111,11 @@ def test_action_has_a_criteria_gate():
     assert "--allow-exec" in step["run"]
     assert step["env"]["TW_CRITERIA_EXEC"] == "${{ inputs.criteria-exec }}"
     assert d["outputs"]["verdict"]["value"] == "${{ steps.criteria.outputs.verdict }}"
+    # The gate, not the criteria step, decides: otherwise a failing verdict returns before it is published.
+    assert step["run"].rstrip().endswith("exit 0")
+    gate = [s for s in d["runs"]["steps"] if s.get("name") == "Gate"][0]
+    assert gate["env"]["TW_CRITERIA_CODE"] == "${{ steps.criteria.outputs.code }}"
+    assert "TW_CRITERIA_CODE" in gate["run"]
 
 
 def test_self_scan_runs_the_criteria_manifest():
@@ -155,3 +160,27 @@ def test_caller_is_short_and_pinned():
     ref = job["with"]["tripwire-ref"]
     assert isinstance(ref, str) and job["uses"].endswith("@" + ref)   # same SHA, and quoted so YAML keeps a string
     assert set(d["on"]) >= {"push", "pull_request"}
+
+
+def test_the_reusable_workflow_publishes_the_verdict():
+    job = _load(ROOT / ".github/workflows/tripwire.yml")["jobs"]["tripwire"]
+    run = [s for s in job["steps"] if s.get("uses", "").startswith("./.tripwire-src")][0]
+    assert run["id"] == "tripwire"
+    upload = [s for s in job["steps"] if s.get("uses", "").startswith("actions/upload-artifact@")][0]
+    assert upload["with"]["path"] == "${{ steps.tripwire.outputs.verdict }}"
+    # A verdict that failed is the one an auditor most needs: always upload, never only on success.
+    assert upload["if"].startswith("always()")
+    assert upload["with"]["if-no-files-found"] == "error"
+
+
+def test_self_scan_signs_the_verdict_in_a_caller_job():
+    jobs = _load(ROOT / ".github/workflows/self-scan.yml")["jobs"]
+    sign = jobs["sign"]
+    assert sign["needs"] == "self-scan"
+    assert sign["permissions"] == {"contents": "read", "id-token": "write", "attestations": "write"}
+    assert [s["uses"].split("@")[0] for s in sign["steps"]] == [
+        "actions/download-artifact", "actions/attest-build-provenance"]
+    assert sign["steps"][1]["with"]["subject-path"].endswith("tripwire-verdict.json")
+    # The signing scopes stay out of the called workflow: a called job may only request what its
+    # caller grants, so adding them there would fail every existing consumer at startup.
+    assert set(_guard_permissions()) == {"contents", "security-events", "actions"}

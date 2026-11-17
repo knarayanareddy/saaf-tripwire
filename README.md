@@ -71,8 +71,10 @@ python -P -m tripwire criteria . --file .tripwire/criteria.yml --allow-exec
 `rule` checks read the tree and honour `.tripwireignore`/`--baseline`. `test`/`command` checks execute code
 and are **refused** unless `--allow-exec` is passed; the action mirrors this with `criteria-exec` (default
 `false`). The verdict is text or `--format json --output verdict.json`: exit 0 pass, 1 fail, 2 guard error.
-The action exposes it as the `verdict` output. Attesting that file and requiring it in branch protection are
-the next step, not built in.
+The action exposes it as the `verdict` output and the reusable workflow publishes it as the
+`saaf-tripwire-verdict` artifact (kept even when the verdict fails). `.github/workflows/self-scan.yml` signs
+that artifact with `attest-build-provenance`; requiring the check on `main` is a repository setting an admin
+must apply — see [docs/CRITERIA.md](docs/CRITERIA.md#sign-off-what-is-built-and-what-only-you-can-do).
 
 ## The guard practises what it preaches
 Every action is pinned to a full commit SHA, the workflow has `contents: read`, `security-events: write` and

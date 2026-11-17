@@ -127,12 +127,11 @@ runs:
         if [ "$TW_CRITERIA_EXEC" = "true" ]; then args+=(--allow-exec); fi
         "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m tripwire "${args[@]}"
         code=$?
-        if [ "$code" -ne 0 ]; then
-          echo "criteria failed (exit $code)"
-          [ -f "$out" ] && cat "$out"   # JSON escapes control characters, so this cannot forge log lines
-        fi
+        # Do not fail here: the Gate decides, and it runs after the verdict has been uploaded. A
+        # failing verdict is the one an auditor needs to see, so it must reach the artifact step.
+        echo "code=$code" >> "$GITHUB_OUTPUT"
         echo "verdict=$out" >> "$GITHUB_OUTPUT"
-        exit $code
+        exit 0
 
     - name: Dependency advisories (online, optional)
       if: inputs.audit-dependencies == 'true'
@@ -149,8 +148,17 @@ runs:
       shell: bash
       env:
         TW_CODE: ${{ steps.scan.outputs.exit-code }}
+        TW_CRITERIA_CODE: ${{ steps.criteria.outputs.code }}
+        TW_VERDICT: ${{ steps.criteria.outputs.verdict }}
         TW_FAIL_ON: ${{ inputs.fail-on }}
+      # Single place that decides the job's outcome, so the criteria step can run to completion and
+      # its verdict can be published even when the answer is no.
       run: |
-        if [ "$TW_CODE" = "0" ]; then echo "SAAF Tripwire: clean at --fail-on $TW_FAIL_ON"; exit 0; fi
         if [ "$TW_CODE" = "1" ]; then echo "::error::SAAF Tripwire found issues at or above $TW_FAIL_ON (see log and Security tab)"; exit 1; fi
-        echo "::error::SAAF Tripwire could not complete the scan (exit $TW_CODE); failing closed"; exit 1
+        if [ "$TW_CODE" != "0" ]; then echo "::error::SAAF Tripwire could not complete the scan (exit $TW_CODE); failing closed"; exit 1; fi
+        if [ -n "${TW_CRITERIA_CODE:-}" ] && [ "$TW_CRITERIA_CODE" != "0" ]; then
+          echo "::error::criteria verdict did not pass (exit $TW_CRITERIA_CODE)"
+          [ -f "${TW_VERDICT:-}" ] && cat "$TW_VERDICT"   # JSON escapes control characters; cannot forge log lines
+          exit 1
+        fi
+        echo "SAAF Tripwire: clean at --fail-on $TW_FAIL_ON${TW_CRITERIA_CODE:+ (criteria: $(basename "$TW_VERDICT"))}"
