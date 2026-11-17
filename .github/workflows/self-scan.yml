@@ -40,3 +40,5 @@ jobs:
       tripwire-repository: ${{ github.repository }}
       fail-on: medium        # the repo is clean at medium; keep it that way
       baseline: .tripwire-baseline.json   # one accepted finding: a fake test key in history (8cea2c3)
+      criteria: .tripwire/criteria.yml     # per-criterion pass/fail, emitted as a verdict artifact
+      criteria-exec: true                  # validates the audit artifacts (same code the tests job runs)

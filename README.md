@@ -52,6 +52,28 @@ The history scan refuses to run on a **shallow clone** (exit 2) rather than repo
 In CI, pass `--config-from <trusted-dir>`: the action uses the base commit, so the change under test cannot
 hide its own findings behind a `.tripwireignore` or a baseline it introduces (`action.yml`, review R-01/R-02).
 
+## Criteria: pass/fail per agent
+A scan answers "does this repo contain known-bad patterns". A criteria manifest answers "does this agent
+meet each audit criterion", one line per criterion and a verdict you can gate on:
+
+```yaml
+# .tripwire/criteria.yml
+version: 1
+agent: my-agent
+criteria:
+  - {id: SA-39, check: {rule: TW-LLM1}}                      # read-only
+  - {id: authz, check: {test: "tests/test_authz.py"}}        # runs pytest
+  - {id: audit-log, check: {command: "python scripts/check_audit_log.py"}}
+```
+```
+python -P -m tripwire criteria . --file .tripwire/criteria.yml --allow-exec
+```
+`rule` checks read the tree and honour `.tripwireignore`/`--baseline`. `test`/`command` checks execute code
+and are **refused** unless `--allow-exec` is passed; the action mirrors this with `criteria-exec` (default
+`false`). The verdict is text or `--format json --output verdict.json`: exit 0 pass, 1 fail, 2 guard error.
+The action exposes it as the `verdict` output. Attesting that file and requiring it in branch protection are
+the next step, not built in.
+
 ## The guard practises what it preaches
 Every action is pinned to a full commit SHA, the workflow has `contents: read`, `security-events: write` and
 `actions: read` only, no event data is expanded inside a shell, the guard runs with `python -P`, and the repo passes its own

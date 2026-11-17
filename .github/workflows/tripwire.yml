@@ -24,6 +24,14 @@ on:
       baseline:
         type: string
         default: ""
+      criteria:
+        description: Optional criteria manifest (relative to the repository) for per-criterion pass/fail.
+        type: string
+        default: ""
+      criteria-exec:
+        description: Allow test/command criteria checks to execute code from the repository.
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -69,4 +77,6 @@ jobs:
           fail-on: ${{ inputs.fail-on }}
           history: ${{ inputs.history }}
           baseline: ${{ inputs.baseline }}
+          criteria: ${{ inputs.criteria }}
+          criteria-exec: ${{ inputs.criteria-exec }}
           audit-dependencies: ${{ inputs.audit-dependencies }}
