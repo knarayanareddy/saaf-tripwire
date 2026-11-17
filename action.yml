@@ -25,10 +25,19 @@ inputs:
   python-version:
     description: Python used to run the guard.
     default: "3.12"
+  criteria:
+    description: Optional path (relative to path) to a criteria manifest for per-criterion pass/fail.
+    default: ""
+  criteria-exec:
+    description: "Allow test/command criteria checks to execute code from the scanned tree. Off by default."
+    default: "false"
 outputs:
   exit-code:
     description: 0 clean, 1 findings at or above fail-on, 2 guard error.
     value: ${{ steps.scan.outputs.exit-code }}
+  verdict:
+    description: Path to the per-criterion verdict JSON (empty when criteria is not set).
+    value: ${{ steps.criteria.outputs.verdict }}
 runs:
   using: composite
   steps:
@@ -93,6 +102,37 @@ runs:
         sarif_file: ${{ steps.scan.outputs.sarif }}
         checkout_path: ${{ github.workspace }}/${{ inputs.path }}
         category: saaf-tripwire
+
+    - name: Criteria verdict
+      id: criteria
+      if: inputs.criteria != ''
+      shell: bash
+      env:
+        TW_PATH: ${{ inputs.path }}
+        TW_CRITERIA: ${{ inputs.criteria }}
+        TW_CRITERIA_EXEC: ${{ inputs.criteria-exec }}
+        TW_HISTORY: ${{ inputs.history }}
+        TW_BASELINE: ${{ inputs.baseline }}
+        PYTHONPATH: ${{ runner.temp }}/tripwire-lib
+      # Rule checks only read the tree. `test:`/`command:` checks execute code and are refused
+      # unless criteria-exec is explicitly true; the scanned repo can supply the manifest.
+      run: |
+        set -uo pipefail
+        config="$RUNNER_TEMP/tw-config"
+        out="$RUNNER_TEMP/tripwire-verdict.json"
+        args=(criteria "$TW_PATH" --file "$TW_CRITERIA" --format json --output "$out")
+        [ -d "$config" ] && args+=(--config-from "$config")
+        if [ -n "${TW_BASELINE:-}" ] && [ -f "$config/baseline.json" ]; then args+=(--baseline baseline.json); fi
+        if [ "$TW_HISTORY" != "true" ]; then args+=(--no-history); fi
+        if [ "$TW_CRITERIA_EXEC" = "true" ]; then args+=(--allow-exec); fi
+        "$RUNNER_TEMP/tripwire-venv/bin/python" -P -m tripwire "${args[@]}"
+        code=$?
+        if [ "$code" -ne 0 ]; then
+          echo "criteria failed (exit $code)"
+          [ -f "$out" ] && cat "$out"   # JSON escapes control characters, so this cannot forge log lines
+        fi
+        echo "verdict=$out" >> "$GITHUB_OUTPUT"
+        exit $code
 
     - name: Dependency advisories (online, optional)
       if: inputs.audit-dependencies == 'true'

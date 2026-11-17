@@ -102,6 +102,30 @@ def test_self_scan_runs_the_guard_from_its_own_repository():
     assert inputs["tripwire-repository"]["default"] == "SAAF-Project/saaf-tripwire"
 
 
+def test_action_has_a_criteria_gate():
+    d = _load(ROOT / "action.yml")
+    assert d["inputs"]["criteria"]["default"] == ""
+    assert d["inputs"]["criteria-exec"]["default"] == "false"
+    step = [s for s in d["runs"]["steps"] if s.get("id") == "criteria"][0]
+    assert step["if"] == "inputs.criteria != ''"
+    assert "--allow-exec" in step["run"]
+    assert step["env"]["TW_CRITERIA_EXEC"] == "${{ inputs.criteria-exec }}"
+    assert d["outputs"]["verdict"]["value"] == "${{ steps.criteria.outputs.verdict }}"
+
+
+def test_self_scan_runs_the_criteria_manifest():
+    selfscan = _load(ROOT / ".github/workflows/self-scan.yml")["jobs"]["self-scan"]
+    assert selfscan["with"]["criteria"] == ".tripwire/criteria.yml"
+    assert selfscan["with"]["criteria-exec"] is True
+    wf = _load(ROOT / ".github/workflows/tripwire.yml")
+    inputs = wf["on"]["workflow_call"]["inputs"]
+    assert inputs["criteria"]["type"] == "string"
+    assert inputs["criteria-exec"]["type"] == "boolean"
+    call = [s for s in wf["jobs"]["tripwire"]["steps"] if s.get("name") == "Run SAAF Tripwire"][0]
+    assert call["with"]["criteria"] == "${{ inputs.criteria }}"
+    assert call["with"]["criteria-exec"] == "${{ inputs.criteria-exec }}"
+
+
 def test_action_runs_guard_with_isolated_python():
     d = _load(ROOT / "action.yml")
     scan = [s for s in d["runs"]["steps"] if s.get("id") == "scan"][0]

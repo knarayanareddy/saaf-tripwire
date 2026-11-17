@@ -173,6 +173,20 @@ def cmd_rules(a) -> int:
     return 0
 
 
+def cmd_criteria(a) -> int:
+    """Pass/fail per audit criterion (phase 4-5 as a command, not just a report)."""
+    from . import criteria
+    try:
+        verdict, code = criteria.run(Path(a.path), file=a.file, history=not a.no_history,
+                                     baseline=a.baseline, config_from=a.config_from,
+                                     allow_exec=a.allow_exec)
+    except criteria.CriteriaError as exc:
+        print(f"tripwire criteria: {exc}", file=sys.stderr)
+        return 2
+    _write(criteria.to_text(verdict) if a.format == "text" else criteria.write_json(verdict), a.output)
+    return code
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="tripwire", description="SAAF Tripwire: one guard built from a real audit of 50 SAAF repos.")
     p.add_argument("--version", action="version", version=f"tripwire {__version__}")
@@ -195,6 +209,17 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser("rules", help="list rules, the attack each stops, and where the audit saw it")
     r.add_argument("--format", choices=("text", "json"), default="text")
     r.set_defaults(func=cmd_rules)
+    c = sub.add_parser("criteria", help="check an agent against a criteria manifest and emit a pass/fail verdict")
+    c.add_argument("path")
+    c.add_argument("--file", default=".tripwire/criteria.yml", help="manifest path, relative to path")
+    c.add_argument("--format", choices=("text", "json"), default="text")
+    c.add_argument("--output", "-o", help="write the verdict to FILE instead of stdout")
+    c.add_argument("--no-history", action="store_true", help="skip git-history rule checks")
+    c.add_argument("--baseline", help="accepted findings used by rule checks")
+    c.add_argument("--config-from", metavar="DIR", help="trusted directory for .tripwireignore/baseline")
+    c.add_argument("--allow-exec", action="store_true",
+                   help="allow test/command checks to execute code from the scanned tree (default: refuse)")
+    c.set_defaults(func=cmd_criteria)
     return p
 
 

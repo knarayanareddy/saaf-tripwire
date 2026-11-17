@@ -1,0 +1,14 @@
+# Per-agent pass/fail. Rule checks are read-only; the command check needs `criteria-exec: true`
+# in CI (it validates this repo's structured audit artifacts).
+version: 1
+agent: saaf-tripwire
+criteria:
+  - id: no-credentials
+    title: No credential material in the tree or reachable history
+    check: {rule: TW-SEC1}
+  - id: actions-pinned
+    title: Every third-party GitHub Action is pinned to a full commit SHA
+    check: {rule: TW-CI1}
+  - id: audit-artifacts-valid
+    title: Findings and coverage ledger satisfy the self-audit schema
+    check: {command: "python docs/self-audit/validate.py"}
